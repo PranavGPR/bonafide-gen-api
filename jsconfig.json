@@ -3,5 +3,8 @@
 		"baseUrl": "src"
 	},
 	"include": ["src"],
-	"compileOnSave": true
+	"compileOnSave": true,
+	"typeAcquisition": {
+		"exclude": ["dotenv"]
+	}
 }

@@ -1,7 +1,7 @@
 import config from 'config';
 
 import winston from 'winston';
-import { requestLogger } from 'middlewares';
+import requestLogger from './requestLogger';
 
 const { format, transports } = winston;
 const { combine, colorize, printf, json, prettyPrint, timestamp } = format;
@@ -32,7 +32,7 @@ const fileLogTransport = (filename, level) => {
 
 export default winston.createLogger({
 	level: config.get('loggingLevel'),
-	transports: [prettyConsoleTransport, fileLogTransport('log.log', 'verbose')],
-	exceptionHandlers: [prettyConsoleTransport, fileLogTransport('exceptions.log', 'error')],
-	rejectionHandlers: [prettyConsoleTransport, fileLogTransport('rejections.log', 'warn')]
+	transports: [prettyConsoleTransport, fileLogTransport('log/log.log', 'verbose')],
+	exceptionHandlers: [prettyConsoleTransport, fileLogTransport('log/exceptions.log', 'error')],
+	rejectionHandlers: [prettyConsoleTransport, fileLogTransport('log/rejections.log', 'warn')]
 });

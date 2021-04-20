@@ -1,5 +1,6 @@
 import express from 'express';
 import chalk from 'chalk';
+import 'express-async-errors';
 
 // Must import dotenv config before config
 import 'dotenv/config';

@@ -1,7 +1,7 @@
 {
-	"name": "my-app-backend",
+	"name": "bonafide-gen-api",
 	"version": "0.0.1",
-	"description": "This is the backend for my-app",
+	"description": "This is the backend for bonafide-generator",
 	"main": "build/server.js",
 	"module": "src/server.js",
 	"scripts": {
@@ -15,7 +15,7 @@
 		"test": "jest"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "PranavGPR",
 	"license": "ISC",
 	"dependencies": {
 		"chalk": "^4.1.0",
@@ -26,6 +26,7 @@
 		"express-rate-limit": "^5.2.6",
 		"helmet": "^4.4.1",
 		"http-status-codes": "^2.1.4",
+		"mongoose": "^5.12.5",
 		"morgan": "^1.10.0",
 		"winston": "^3.3.3"
 	},

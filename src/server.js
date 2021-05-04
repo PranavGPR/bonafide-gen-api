@@ -7,6 +7,7 @@ import 'dotenv/config';
 import config from 'config';
 
 import { registerLogging, registerPreprocessor, registerRouters } from 'tools';
+import { dbConnection } from './dbConnection';
 import logger from 'tools/logging';
 
 const PORT = config.get('port');
@@ -17,8 +18,11 @@ registerLogging(app);
 registerPreprocessor(app);
 registerRouters(app);
 
-const server = app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST);
+
+server.once('listening', () => {
 	const { address, port } = server.address();
 	logger.info(`Server started at port ${chalk.magenta(port)}`);
 	logger.info(`Listening for requests at ${chalk.cyan(address + ':' + port)}`);
+	dbConnection();
 });

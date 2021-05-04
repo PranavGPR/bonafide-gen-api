@@ -9,5 +9,6 @@
 module.exports = {
 	host: 'HOST',
 	port: 'PORT',
-	logRequests: 'VERBOSE_REQ_LOGGING'
+	logRequests: 'VERBOSE_REQ_LOGGING',
+	DB_SERVER: 'DB_SERVER'
 };

@@ -1,6 +1,12 @@
 {
 	"compilerOptions": {
-		"baseUrl": "src"
+		"baseUrl": "src",
+		"paths": {
+			"routers/*": ["routers/*"],
+			"models/*": ["models/*"],
+			"middlewares/*": ["middlewares/*"],
+			"controllers/*": ["controllers/*"]
+		}
 	},
 	"include": ["src"],
 	"compileOnSave": true,

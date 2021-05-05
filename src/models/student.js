@@ -39,7 +39,7 @@ export const validateStudent = data => {
 		}),
 		name: Joi.string().required(),
 		profileImg: Joi.string().required(),
-		dateOfBitrh: Joi.date().required().iso(),
+		dateOfBirth: Joi.date().required().iso(),
 		degree: Joi.string().required(),
 		department: Joi.string().required(),
 		batch: Joi.string().required(),

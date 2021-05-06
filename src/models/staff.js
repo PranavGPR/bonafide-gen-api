@@ -18,7 +18,7 @@ const StaffSchema = new Schema(
 	}
 );
 
-export default model('student', StaffSchema);
+export default model('staff', StaffSchema);
 
 export const validateStaff = data => {
 	const schema = Joi.object({

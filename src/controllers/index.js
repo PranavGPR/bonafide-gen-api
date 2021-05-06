@@ -1,1 +1,1 @@
-export { default as PingController } from './ping.controller';
+export { default as AdminController } from './admin';

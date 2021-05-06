@@ -1,1 +1,1 @@
-export { default as PingRouter } from './ping.router';
+export { default as AdminRouter } from './admin';

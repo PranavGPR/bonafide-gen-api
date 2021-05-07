@@ -46,17 +46,12 @@ export const deleteStudent = async (req, res) => {
 
 	if (!id) return res.status(400).send('id field required');
 
-	try {
-		if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('Not a valid id');
+	if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('Not a valid id');
 
-		const student = await Student.findByIdAndDelete(id);
-		if (!student) return res.status(404).send('Student does not exist');
-		logger.debug('Student deleted successfully');
-		return res.status(200).send('Student deleted successfully');
-	} catch (err) {
-		logger.error(err);
-		return res.status(400).send('Could not delete the student');
-	}
+	const student = await Student.findByIdAndDelete(id);
+	if (!student) return res.status(404).send('Student does not exist');
+	logger.debug('Student deleted successfully');
+	return res.status(200).send('Student deleted successfully');
 };
 
 /**
@@ -102,15 +97,10 @@ export const deleteStaff = async (req, res) => {
 
 	if (!id) return res.status(400).send('id field required');
 
-	try {
-		if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('Not a valid id');
+	if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('Not a valid id');
 
-		const staff = await Staff.findByIdAndDelete(id);
-		if (!staff) return res.status(404).send('Staff does not exist');
-		logger.debug('Staff deleted successfully');
-		return res.status(200).send('Staff deleted successfully');
-	} catch (err) {
-		logger.error(err);
-		return res.status(400).send('Could not delete the staff');
-	}
+	const staff = await Staff.findByIdAndDelete(id);
+	if (!staff) return res.status(404).send('Staff does not exist');
+	logger.debug('Staff deleted successfully');
+	return res.status(200).send('Staff deleted successfully');
 };

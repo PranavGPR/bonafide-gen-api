@@ -1,8 +1,8 @@
 import logger from 'tools/logging';
 import { StatusCodes } from 'http-status-codes';
 
-export default (err, _req, res, next) => {
-	const { body } = _req;
+export default (err, req, res, next) => {
+	const { body } = req;
 
 	logger.error(err.message, err);
 

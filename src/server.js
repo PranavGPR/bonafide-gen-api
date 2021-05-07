@@ -14,15 +14,16 @@ const PORT = config.get('port');
 const HOST = config.get('host');
 
 const app = express();
+app.use(express.json());
 registerLogging(app);
 registerPreprocessor(app);
 registerRouters(app);
 
 const server = app.listen(PORT, HOST);
 
-server.once('listening', () => {
+server.once('listening', async () => {
 	const { address, port } = server.address();
 	logger.info(`Server started at port ${chalk.magenta(port)}`);
 	logger.info(`Listening for requests at ${chalk.cyan(address + ':' + port)}`);
-	dbConnection();
+	await dbConnection();
 });

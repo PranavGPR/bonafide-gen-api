@@ -18,24 +18,13 @@ export const newStudent = async (req, res) => {
 	const { body } = req;
 	logger.debug('Acknowledged: ', body);
 
-	try {
-		const { error } = validateStudent(body);
-		if (error) return res.status(400).send(error.details[0].message);
+	const { error } = validateStudent(body);
+	if (error) return res.status(400).send(error.details[0].message);
 
-		let student = await new Student({ ...body });
-		student = await student.save();
+	let student = await new Student({ ...body });
+	student = await student.save();
 
-		res.status(200).send(student);
-	} catch (err) {
-		logger.error(err);
-		if (err.code === 11000) {
-			const errorKeys = Object.keys(err.keyPattern);
-			return res
-				.status(400)
-				.json({ message: `${body[errorKeys[0]]} is already registered`, error: err });
-		}
-		return res.status(500).send(`Couldn't add student due to ${err}`);
-	}
+	return res.status(200).send(student);
 };
 
 /**
@@ -85,24 +74,13 @@ export const newStaff = async (req, res) => {
 	const { body } = req;
 	logger.debug('Acknowledged: ', body);
 
-	try {
-		const { error } = validateStaff(body);
-		if (error) return res.status(400).send(error.details[0].message);
+	const { error } = validateStaff(body);
+	if (error) return res.status(400).send(error.details[0].message);
 
-		let staff = await new Staff({ ...body });
-		staff = await staff.save();
+	let staff = await new Staff({ ...body });
+	staff = await staff.save();
 
-		res.status(200).send(staff);
-	} catch (err) {
-		logger.error(err);
-		if (err.code === 11000) {
-			const errorKeys = Object.keys(err.keyPattern);
-			return res
-				.status(400)
-				.json({ message: `${body[errorKeys[0]]} is already registered`, error: err });
-		}
-		return res.status(500).send(`Couldn't add staff due to ${err}`);
-	}
+	return res.status(200).send(staff);
 };
 
 /**

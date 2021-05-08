@@ -29,6 +29,71 @@ export const newStudent = async (req, res) => {
 
 /**
  *
+ * Get list of students
+ *
+ * @route: /getStudents
+ * @method: GET
+ * @requires: body{}
+ * @returns: Object{Students}
+ *
+ */
+
+export const getStudents = async (req, res) => {
+	const students = await Student.find();
+	return res.status(200).send(students);
+};
+
+/**
+ *
+ * Get a student by id
+ *
+ * @route: /getStudent
+ * @method: GET
+ * @requires: body{id}
+ * @returns: Object{Student}
+ *
+ */
+export const getStudentById = async (req, res) => {
+	const { id } = req.params;
+	logger.info(id);
+
+	if (!id) return res.status(400).send('id field required');
+
+	if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('id must be valid');
+
+	const student = await Student.findById(id);
+
+	if (!student) return res.status(404).send('Student does not exist');
+
+	return res.status(200).send(student);
+};
+
+/**
+ *
+ * Get a student by register number
+ *
+ * @route: /getStudent
+ * @method: GET
+ * @requires: body{registerNumber}
+ * @returns: Object{Student}
+ *
+ */
+export const getStudentByRegisterNumber = async (req, res) => {
+	const { registerNumber } = req.params;
+
+	if (!registerNumber) return res.status(400).send('registerNumber field required');
+
+	if (!Number(registerNumber)) return res.status(400).send('registerNumber must be valid');
+
+	const student = await Student.find({ registerNumber });
+
+	if (!student) return res.status(404).send('Student does not exist');
+
+	return res.status(200).send(student);
+};
+
+/**
+ *
  * Delete Student
  *
  * @route: /student/delete
@@ -103,4 +168,20 @@ export const deleteStaff = async (req, res) => {
 	if (!staff) return res.status(404).send('Staff does not exist');
 	logger.debug('Staff deleted successfully');
 	return res.status(200).send('Staff deleted successfully');
+};
+
+/**
+ *
+ * Get list of staffs
+ *
+ * @route: /getStaffs
+ * @method: GET
+ * @requires: body{}
+ * @returns: Object{Staffs}
+ *
+ */
+
+export const getStaffs = async (req, res) => {
+	const staffs = await Staff.find();
+	return res.status(200).send(staffs);
 };

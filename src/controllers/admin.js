@@ -1,4 +1,5 @@
 import Mongoose from 'mongoose';
+import { StatusCodes } from 'http-status-codes';
 
 import { Student, validateStudent, Staff, validateStaff } from 'models';
 import logger from 'tools/logging';
@@ -19,12 +20,12 @@ export const newStudent = async (req, res) => {
 	logger.debug('Acknowledged: ', body);
 
 	const { error } = validateStudent(body);
-	if (error) return res.status(400).send(error.details[0].message);
+	if (error) return res.status(StatusCodes.BAD_REQUEST).send(error.details[0].message);
 
 	let student = await new Student({ ...body });
 	student = await student.save();
 
-	return res.status(200).send(student);
+	return res.status(StatusCodes.OK).json({ message: 'Successfully Created!', data: student });
 };
 
 /**
@@ -40,7 +41,7 @@ export const newStudent = async (req, res) => {
 
 export const getStudents = async (req, res) => {
 	const students = await Student.find();
-	return res.status(200).send(students);
+	return res.status(StatusCodes.OK).json({ data: students });
 };
 
 /**
@@ -57,15 +58,16 @@ export const getStudentById = async (req, res) => {
 	const { id } = req.params;
 	logger.info(id);
 
-	if (!id) return res.status(400).send('id field required');
+	if (!id) return res.status(StatusCodes.BAD_REQUEST).send('id field required');
 
-	if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('id must be valid');
+	if (!Mongoose.Types.ObjectId.isValid(id))
+		return res.status(StatusCodes.BAD_REQUEST).send('id must be valid');
 
 	const student = await Student.findById(id);
 
-	if (!student) return res.status(404).send('Student does not exist');
+	if (!student) return res.status(StatusCodes.NOT_FOUND).send('Student does not exist');
 
-	return res.status(200).send(student);
+	return res.status(StatusCodes.OK).json({ data: student });
 };
 
 /**
@@ -81,15 +83,17 @@ export const getStudentById = async (req, res) => {
 export const getStudentByRegisterNumber = async (req, res) => {
 	const { registerNumber } = req.params;
 
-	if (!registerNumber) return res.status(400).send('registerNumber field required');
+	if (!registerNumber)
+		return res.status(StatusCodes.BAD_REQUEST).send('registerNumber field required');
 
-	if (!Number(registerNumber)) return res.status(400).send('registerNumber must be valid');
+	if (!Number(registerNumber))
+		return res.status(StatusCodes.BAD_REQUEST).send('registerNumber must be valid');
 
 	const student = await Student.find({ registerNumber });
 
-	if (!student) return res.status(404).send('Student does not exist');
+	if (!student) return res.status(StatusCodes.NOT_FOUND).send('Student does not exist');
 
-	return res.status(200).send(student);
+	return res.status(StatusCodes.OK).send(student);
 };
 
 /**
@@ -109,14 +113,15 @@ export const deleteStudent = async (req, res) => {
 	} = req;
 	logger.debug('Acknowledged: ', id);
 
-	if (!id) return res.status(400).send('id field required');
+	if (!id) return res.status(StatusCodes.BAD_REQUEST).send('id field required');
 
-	if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('Not a valid id');
+	if (!Mongoose.Types.ObjectId.isValid(id))
+		return res.status(StatusCodes.BAD_REQUEST).send('Not a valid id');
 
 	const student = await Student.findByIdAndDelete(id);
-	if (!student) return res.status(404).send('Student does not exist');
+	if (!student) return res.status(StatusCodes.NOT_FOUND).send('Student does not exist');
 	logger.debug('Student deleted successfully');
-	return res.status(200).send('Student deleted successfully');
+	return res.status(StatusCodes.OK).send('Student deleted successfully');
 };
 
 /**
@@ -135,12 +140,12 @@ export const newStaff = async (req, res) => {
 	logger.debug('Acknowledged: ', body);
 
 	const { error } = validateStaff(body);
-	if (error) return res.status(400).send(error.details[0].message);
+	if (error) return res.status(StatusCodes.BAD_REQUEST).send(error.details[0].message);
 
 	let staff = await new Staff({ ...body });
 	staff = await staff.save();
 
-	return res.status(200).send(staff);
+	return res.status(StatusCodes.OK).send(staff);
 };
 
 /**
@@ -160,14 +165,15 @@ export const deleteStaff = async (req, res) => {
 	} = req;
 	logger.debug('Acknowledged: ', id);
 
-	if (!id) return res.status(400).send('id field required');
+	if (!id) return res.status(StatusCodes.BAD_REQUEST).send('id field required');
 
-	if (!Mongoose.Types.ObjectId.isValid(id)) return res.status(400).send('Not a valid id');
+	if (!Mongoose.Types.ObjectId.isValid(id))
+		return res.status(StatusCodes.BAD_REQUEST).send('Not a valid id');
 
 	const staff = await Staff.findByIdAndDelete(id);
-	if (!staff) return res.status(404).send('Staff does not exist');
+	if (!staff) return res.status(StatusCodes.NOT_FOUND).send('Staff does not exist');
 	logger.debug('Staff deleted successfully');
-	return res.status(200).send('Staff deleted successfully');
+	return res.status(StatusCodes.OK).send('Staff deleted successfully');
 };
 
 /**
@@ -183,5 +189,5 @@ export const deleteStaff = async (req, res) => {
 
 export const getStaffs = async (req, res) => {
 	const staffs = await Staff.find();
-	return res.status(200).send(staffs);
+	return res.status(StatusCodes.OK).send(staffs);
 };

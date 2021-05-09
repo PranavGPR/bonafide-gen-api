@@ -14,7 +14,7 @@ const StaffSchema = new Schema(
 		campus: { type: String, required: true, default: 'AUBIT' },
 		phoneNumber: { type: Number, min: 4444444444, max: 9999999999, required: true },
 		email: { type: String, required: true, unique: true },
-		sectionId: { type: Types.ObjectId, required: true }
+		section: { type: Types.ObjectId, required: true }
 	},
 	{
 		timestamps: true
@@ -38,7 +38,7 @@ export const validateStaff = data => {
 		email: Joi.string()
 			.email({ tlds: { allow: false } })
 			.required(),
-		sectionId: myJoiObjectId().required()
+		section: myJoiObjectId().required()
 	});
 
 	return schema.validate(data);

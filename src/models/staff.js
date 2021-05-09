@@ -1,5 +1,8 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 import Joi from '@hapi/joi';
+import JoiObjectId from 'joi-objectid';
+
+const myJoiObjectId = JoiObjectId(Joi);
 
 const StaffSchema = new Schema(
 	{
@@ -11,7 +14,7 @@ const StaffSchema = new Schema(
 		campus: { type: String, required: true, default: 'AUBIT' },
 		phoneNumber: { type: Number, min: 4444444444, max: 9999999999, required: true },
 		email: { type: String, required: true, unique: true },
-		sectionId: { type: String, required: true }
+		sectionId: { type: Types.ObjectId, required: true }
 	},
 	{
 		timestamps: true
@@ -35,7 +38,7 @@ export const validateStaff = data => {
 		email: Joi.string()
 			.email({ tlds: { allow: false } })
 			.required(),
-		sectionId: Joi.string().required()
+		sectionId: myJoiObjectId().required()
 	});
 
 	return schema.validate(data);

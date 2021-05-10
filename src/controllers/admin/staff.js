@@ -1,5 +1,6 @@
 import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
+import bcrypt from 'bcrypt';
 
 import { Staff, validateStaff } from 'models';
 import logger from 'tools/logging';
@@ -21,6 +22,8 @@ export const newStaff = async (req, res) => {
 
 	const { error } = validateStaff(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
+
+	body.password = await bcrypt.hash(body.password, 10);
 
 	let staff = await new Staff({ ...body });
 	staff = await staff.save();

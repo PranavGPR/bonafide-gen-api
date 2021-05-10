@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
+import bcrypt from 'bcrypt';
 
 import logger from 'tools/logging';
 import { Student, Staff } from 'models/';
@@ -151,7 +152,13 @@ export const staffLogin = async (req, res) => {
 	if (!password)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'password field required' });
 
-	const staff = await Staff.findOne({ email }).select('name');
+	const staff = await Staff.findOne({ email }).select('name password');
+
+	const match = await bcrypt.compare(password, staff.password);
+
+	if (!match) {
+		return res.status(StatusCodes.NOT_FOUND).json({ error: 'password incorrect' });
+	}
 
 	if (!staff)
 		return res.status(StatusCodes.NOT_FOUND).json({ error: 'email or password incorrect' });
@@ -160,7 +167,5 @@ export const staffLogin = async (req, res) => {
 
 	const token = jwt.sign({ role: 'staff', id, name }, config.get('jwtPrivateKey'));
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Logged in Successfully', token, data: { id, name } });
+	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
 };

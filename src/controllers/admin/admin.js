@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
+import bcrypt from 'bcrypt';
 
 import { Section, Student, Staff, validateAdmin, Admin } from 'models';
 import logger from 'tools/logging';
@@ -24,6 +25,8 @@ export const newAdmin = async (req, res) => {
 
 	const { error } = validateAdmin(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
+
+	body.password = await bcrypt.hash(body.password, 10);
 
 	let admin = await new Admin({ ...body, studentsId: [] });
 	admin = await admin.save();
@@ -145,7 +148,13 @@ export const adminLogin = async (req, res) => {
 	if (!password)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'password field required' });
 
-	const admin = await Admin.findOne({ email, password }).select('name');
+	const admin = await Admin.findOne({ email }).select('name password');
+
+	const match = await bcrypt.compare(password, admin.password);
+
+	if (!match) {
+		return res.status(StatusCodes.NOT_FOUND).json({ error: 'password incorrect' });
+	}
 
 	if (!admin)
 		return res.status(StatusCodes.NOT_FOUND).json({ error: 'email or password incorrect' });

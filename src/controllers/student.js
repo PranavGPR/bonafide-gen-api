@@ -107,7 +107,5 @@ export const studentLogin = async (req, res) => {
 
 	const token = jwt.sign({ role: 'student', id, name }, config.get('jwtPrivateKey'));
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Logged in Successfully', token, data: { id, name } });
+	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
 };

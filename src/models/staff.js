@@ -8,7 +8,7 @@ const StaffSchema = new Schema(
 	{
 		name: { type: String, required: true },
 		profileImg: { type: String, required: true },
-		password: { type: String, required: true, minlength: 8, maxlength: 50 },
+		password: { type: String, required: true, minlength: 8, maxlength: 256 },
 		designation: { type: String, required: true },
 		department: { type: String, required: true },
 		campus: { type: String, required: true, default: 'AUBIT' },
@@ -27,7 +27,7 @@ export const validateStaff = data => {
 	const schema = Joi.object({
 		name: Joi.string().required(),
 		profileImg: Joi.string().required(),
-		password: Joi.string().min(8).max(50).required(),
+		password: Joi.string().min(8).max(256).required(),
 		designation: Joi.string().required(),
 		department: Joi.string().required(),
 		campus: Joi.string().required(),

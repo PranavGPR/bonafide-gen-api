@@ -1,6 +1,7 @@
 import express from 'express';
 import chalk from 'chalk';
 import 'express-async-errors';
+import cors from 'cors';
 
 // Must import dotenv config before config
 import 'dotenv/config';
@@ -14,6 +15,7 @@ const PORT = config.get('port');
 const HOST = config.get('host');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 registerLogging(app);
 registerPreprocessor(app);

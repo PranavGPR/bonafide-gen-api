@@ -145,19 +145,20 @@ export const adminLogin = async (req, res) => {
 	} = req;
 
 	if (!email) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email field required' });
+
 	if (!password)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'password field required' });
 
 	const admin = await Admin.findOne({ email }).select('name password');
 
+	if (!admin)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
+
 	const match = await bcrypt.compare(password, admin.password);
 
 	if (!match) {
-		return res.status(StatusCodes.NOT_FOUND).json({ error: 'password incorrect' });
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
 	}
-
-	if (!admin)
-		return res.status(StatusCodes.NOT_FOUND).json({ error: 'email or password incorrect' });
 
 	const { name, _id: id } = admin;
 

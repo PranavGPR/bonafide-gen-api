@@ -154,14 +154,14 @@ export const staffLogin = async (req, res) => {
 
 	const staff = await Staff.findOne({ email }).select('name password');
 
+	if (!staff)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
+
 	const match = await bcrypt.compare(password, staff.password);
 
 	if (!match) {
-		return res.status(StatusCodes.NOT_FOUND).json({ error: 'password incorrect' });
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
 	}
-
-	if (!staff)
-		return res.status(StatusCodes.NOT_FOUND).json({ error: 'email or password incorrect' });
 
 	const { _id: id, name } = staff;
 

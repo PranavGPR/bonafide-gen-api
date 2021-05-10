@@ -4,7 +4,7 @@ import config from 'config';
 import { StatusCodes } from 'http-status-codes';
 
 export default (req, res, next) => {
-	const token = req.header('x-auth-token');
+	const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 	if (!token) res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Access denied.' });
 
 	try {

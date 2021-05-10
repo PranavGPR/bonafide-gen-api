@@ -1,5 +1,8 @@
 import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
+import jwt from 'jsonwebtoken';
+import 'dotenv/config';
+import config from 'config';
 
 import logger from 'tools/logging';
 import { Student, Staff } from 'models/';
@@ -43,7 +46,7 @@ export const getStudentById = async (req, res) => {
  *
  */
 export const getStaffById = async (req, res) => {
-	const { id } = req.params;
+	const { id } = req.user;
 	logger.debug('Acknowleged:', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
@@ -126,4 +129,38 @@ export const updateStaff = async (req, res) => {
 	logger.debug('Staff updated successfully');
 
 	return res.status(StatusCodes.OK).json({ message: 'Staff updated successfully', data: staff });
+};
+
+/**
+ *
+ * Staff Login
+ *
+ * @route: /login
+ * @method: POST
+ * @requires: body{ email, password}
+ * @returns: 'Logged in Successfully' | 'Could not login'
+ *
+ */
+
+export const staffLogin = async (req, res) => {
+	const {
+		body: { email, password }
+	} = req;
+
+	if (!email) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email field required' });
+	if (!password)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'password field required' });
+
+	const staff = await Staff.findOne({ email }).select('name');
+
+	if (!staff)
+		return res.status(StatusCodes.NOT_FOUND).json({ error: 'email or password incorrect' });
+
+	const { _id: id, name } = staff;
+
+	const token = jwt.sign({ role: 'staff', id, name }, config.get('jwtPrivateKey'));
+
+	return res
+		.status(StatusCodes.OK)
+		.json({ message: 'Logged in Successfully', token, data: { id, name } });
 };

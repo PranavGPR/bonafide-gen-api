@@ -1,5 +1,8 @@
 import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
+import jwt from 'jsonwebtoken';
+import 'dotenv/config';
+import config from 'config';
 
 import { Section, Student, Staff, validateAdmin, Admin } from 'models';
 import logger from 'tools/logging';
@@ -120,4 +123,36 @@ export const countMembers = async (req, res) => {
 		studentCount: students,
 		sectionCount: sections
 	});
+};
+
+/**
+ *
+ * Admin Login
+ *
+ * @route: /login
+ * @method: POST
+ * @requires: body{ email, password}
+ * @returns: 'Logged in Successfully' | 'Could not login'
+ *
+ */
+
+export const adminLogin = async (req, res) => {
+	const {
+		body: { email, password }
+	} = req;
+
+	if (!email) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email field required' });
+	if (!password)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'password field required' });
+
+	const admin = await Admin.findOne({ email, password }).select('name');
+
+	if (!admin)
+		return res.status(StatusCodes.NOT_FOUND).json({ error: 'email or password incorrect' });
+
+	const { name, _id: id } = admin;
+
+	const token = jwt.sign({ role: 'admin', id, name }, config.get('jwtPrivateKey'));
+
+	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
 };

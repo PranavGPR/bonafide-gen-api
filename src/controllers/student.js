@@ -1,4 +1,7 @@
 import Mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+import 'dotenv/config';
+import config from 'config';
 import { StatusCodes } from 'http-status-codes';
 
 import { Student } from 'models';
@@ -15,7 +18,7 @@ import logger from 'tools/logging';
  *
  */
 export const getStudentById = async (req, res) => {
-	const { id } = req.params;
+	const { id } = req.user;
 	logger.debug('Acknowleged:', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
@@ -73,4 +76,38 @@ export const updateStudent = async (req, res) => {
 	return res
 		.status(StatusCodes.OK)
 		.json({ message: 'Student updated successfully', data: student });
+};
+
+/**
+ *
+ * Student Login
+ *
+ * @route: /login
+ * @method: POST
+ * @requires: body{ registerNumber, dateOfBirth}
+ * @returns: 'Logged in Successfully' | 'Could not login'
+ *
+ */
+
+export const studentLogin = async (req, res) => {
+	const {
+		body: { registerNumber, dateOfBirth }
+	} = req;
+
+	if (!registerNumber)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'registerNumber field required' });
+	if (!dateOfBirth)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'dateOfBirth field required' });
+
+	const student = await Student.findOne({ registerNumber }).select('name');
+
+	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+
+	const { _id: id, name } = student;
+
+	const token = jwt.sign({ role: 'student', id, name }, config.get('jwtPrivateKey'));
+
+	return res
+		.status(StatusCodes.OK)
+		.json({ message: 'Logged in Successfully', token, data: { id, name } });
 };

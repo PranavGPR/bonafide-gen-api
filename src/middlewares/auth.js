@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 
 export default (req, res, next) => {
 	const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-	if (!token) res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Access denied.' });
+	if (!token) return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Access denied.' });
 
 	try {
 		const decoded = jwt.verify(token, config.get('jwtPrivateKey'));

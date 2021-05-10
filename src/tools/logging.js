@@ -32,7 +32,7 @@ const fileLogTransport = (filename, level) => {
 
 export default winston.createLogger({
 	level: config.get('loggingLevel'),
-	transports: [prettyConsoleTransport, fileLogTransport('log/log.log', 'verbose')],
+	transports: [prettyConsoleTransport],
 	exceptionHandlers: [prettyConsoleTransport, fileLogTransport('log/exceptions.log', 'error')],
 	rejectionHandlers: [prettyConsoleTransport, fileLogTransport('log/rejections.log', 'warn')]
 });

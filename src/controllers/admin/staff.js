@@ -43,7 +43,10 @@ export const newStaff = async (req, res) => {
  */
 
 export const getStaffs = async (req, res) => {
-	const staffs = await Staff.find();
+	const staffs = await Staff.find({}, { password: 0, createdAt: 0, updatedAt: 0 }).populate(
+		'section',
+		'name'
+	);
 	return res.status(StatusCodes.OK).json({ data: staffs });
 };
 

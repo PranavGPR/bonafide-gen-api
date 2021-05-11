@@ -14,7 +14,7 @@ const StaffSchema = new Schema(
 		campus: { type: String, required: true, default: 'AUBIT' },
 		phoneNumber: { type: Number, min: 4444444444, max: 9999999999, required: true },
 		email: { type: String, required: true, unique: true },
-		section: { type: Types.ObjectId, required: true }
+		section: { type: Types.ObjectId, ref: 'section', required: true }
 	},
 	{
 		timestamps: true

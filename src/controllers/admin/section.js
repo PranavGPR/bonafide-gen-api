@@ -1,7 +1,7 @@
 import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 
-import { validateSection, Section } from 'models';
+import { validateSection, Section, Staff, Student } from 'models';
 import logger from 'tools/logging';
 
 /**
@@ -10,7 +10,7 @@ import logger from 'tools/logging';
  *
  * @route: /section/new
  * @method: POST
- * @requires: body{name, staffId}
+ * @requires: body{name}
  * @returns: 'Section created successfully' | 'Could not add the section'
  *
  */
@@ -22,7 +22,7 @@ export const newSection = async (req, res) => {
 	const { error } = validateSection(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
 
-	let section = await new Section({ ...body, studentsId: [] });
+	let section = await new Section({ name: body.name });
 	section = await section.save();
 
 	return res
@@ -64,7 +64,9 @@ export const getSectionById = async (req, res) => {
 	if (!Mongoose.Types.ObjectId.isValid(id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
 
-	const section = await Section.findById(id);
+	const section = await Section.findById(id)
+		.populate('staffs', 'name designation department campus email')
+		.populate('students', 'name degree department campus registerNumber ');
 
 	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
 
@@ -126,22 +128,29 @@ export const updateSectionStaff = async (req, res) => {
 	if (!staffId)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'staffId field required' });
 
-	// if (!body.studentId)
-	// 	return res.status(StatusCodes.BAD_REQUEST).json({ error: 'studentId field required' });
-	// $push: { studentsId: body.studentId }
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
+	if (!Mongoose.Types.ObjectId.isValid(staffId) || !Mongoose.Types.ObjectId.isValid(id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
 
-	const section = await Section.findByIdAndUpdate(id, { id, staffId }, { new: true });
+	const section = await Section.findById(id);
+	if (!section)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
 
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	const staff = await Staff.findByIdAndUpdate(staffId, {
+		section: id
+	});
+	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
+
+	const sectionUpdated = await Section.findByIdAndUpdate(
+		id,
+		{ $push: { staffs: staffId } },
+		{ new: true }
+	);
 
 	logger.debug('Section updated successfully');
 
 	return res
 		.status(StatusCodes.OK)
-		.json({ message: 'Section updated successfully', data: section });
+		.json({ message: 'Section updated successfully', data: sectionUpdated });
 };
 
 /**
@@ -165,22 +174,123 @@ export const updateSectionStudent = async (req, res) => {
 	if (!studentId)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'studentId field required' });
 
-	if (!Mongoose.Types.ObjectId.isValid(id))
+	if (!Mongoose.Types.ObjectId.isValid(id) || !Mongoose.Types.ObjectId.isValid(studentId))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
 
-	const section = await Section.findByIdAndUpdate(
+	const section = await Section.findById(id);
+	if (!section)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
+
+	const student = await Student.findByIdAndUpdate(studentId, {
+		section: id
+	});
+	if (!student)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Student does not exist' });
+
+	const sectionUpdated = await Section.findByIdAndUpdate(
 		id,
-		{ id, $push: { studentsId: studentId } },
+		{ $push: { students: studentId } },
 		{ new: true }
 	);
-
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
 
 	logger.debug('Section updated successfully');
 
 	return res
 		.status(StatusCodes.OK)
-		.json({ message: 'Section updated successfully', data: section });
+		.json({ message: 'Section updated successfully', data: sectionUpdated });
+};
+
+/**
+ *
+ * Update Section's Staff
+ *
+ * @route: /section/update/staff
+ * @method: DELETE
+ * @requires: body{ id, staffId}
+ * @returns: 'Successfully updated' | 'Could not update the section'
+ *
+ */
+
+export const removeSectionStaff = async (req, res) => {
+	const {
+		body: { id, staffId }
+	} = req;
+	logger.debug('Acknowledged: ', id);
+
+	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!staffId)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'staffId field required' });
+
+	if (!Mongoose.Types.ObjectId.isValid(staffId) || !Mongoose.Types.ObjectId.isValid(id))
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
+
+	const section = await Section.findById(id);
+	if (!section)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
+
+	const staff = await Staff.findByIdAndUpdate(staffId, {
+		section: null
+	});
+	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
+
+	const sectionUpdated = await Section.findByIdAndUpdate(
+		id,
+		{ $pull: { staffs: staffId } },
+		{ new: true }
+	);
+
+	logger.debug('Section updated successfully');
+
+	return res
+		.status(StatusCodes.OK)
+		.json({ message: 'Section updated successfully', data: sectionUpdated });
+};
+
+/**
+ *
+ * Update Section's Student
+ *
+ * @route: /section/update/student
+ * @method: DELETE
+ * @requires: body{ id, studentId}
+ * @returns: 'Successfully updated' | 'Could not update the section'
+ *
+ */
+
+export const removeSectionStudent = async (req, res) => {
+	const {
+		body: { id, studentId }
+	} = req;
+	logger.debug('Acknowledged: ', id);
+
+	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!studentId)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'studentId field required' });
+
+	if (!Mongoose.Types.ObjectId.isValid(id) || !Mongoose.Types.ObjectId.isValid(studentId))
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
+
+	const section = await Section.findById(id);
+	if (!section)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
+
+	const student = await Student.findByIdAndUpdate(studentId, {
+		section: null
+	});
+	if (!student)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Student does not exist' });
+
+	const sectionUpdated = await Section.findByIdAndUpdate(
+		id,
+		{ $pull: { students: studentId } },
+		{ new: true }
+	);
+
+	logger.debug('Section updated successfully');
+
+	return res
+		.status(StatusCodes.OK)
+		.json({ message: 'Section updated successfully', data: sectionUpdated });
 };
 
 /**

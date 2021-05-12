@@ -24,6 +24,8 @@ import {
 	updateSectionName,
 	updateSectionStaff,
 	updateSectionStudent,
+	removeSectionStaff,
+	removeSectionStudent,
 	adminLogin
 } from 'controllers/admin';
 import { auth, isAdmin } from 'middlewares';
@@ -55,6 +57,8 @@ router.get('/section/all', auth, isAdmin, getSections);
 router.put('/section/update/name', auth, isAdmin, updateSectionName);
 router.put('/section/update/staff', auth, isAdmin, updateSectionStaff);
 router.put('/section/update/student', auth, isAdmin, updateSectionStudent);
+router.delete('/section/update/staff', auth, isAdmin, removeSectionStaff);
+router.delete('/section/update/student', auth, isAdmin, removeSectionStudent);
 router.delete('/section/delete', auth, isAdmin, deleteSection);
 router.get('/section/:id', auth, isAdmin, getSectionById);
 

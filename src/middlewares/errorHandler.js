@@ -10,7 +10,7 @@ export default (err, req, res, next) => {
 		const errorKeys = Object.keys(err.keyPattern);
 		return res
 			.status(400)
-			.json({ message: `${body[errorKeys[0]]} is already registered`, error: err });
+			.json({ error: `${body[errorKeys[0]]} is already registered`, detail: err });
 	}
 
 	res.status(err.code ?? StatusCodes.INTERNAL_SERVER_ERROR).json({

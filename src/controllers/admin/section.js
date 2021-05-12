@@ -96,7 +96,7 @@ export const updateSectionName = async (req, res) => {
 	if (!Mongoose.Types.ObjectId.isValid(id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
 
-	const section = await await Section.findByIdAndUpdate(id, { id, name }, { new: true });
+	const section = await Section.findByIdAndUpdate(id, { name }, { new: true });
 
 	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
 

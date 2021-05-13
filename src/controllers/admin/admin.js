@@ -21,14 +21,14 @@ import logger from 'tools/logging';
 
 export const newAdmin = async (req, res) => {
 	const { body } = req;
-	logger.info('Acknowledged: ', body);
+	logger.debug('Acknowledged: ', body);
 
 	const { error } = validateAdmin(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
 
 	body.password = await bcrypt.hash(body.password, 10);
 
-	let admin = await new Admin({ ...body, studentsId: [] });
+	let admin = new Admin({ ...body });
 	admin = await admin.save();
 
 	return res.status(StatusCodes.OK).json({ message: 'Admin created successfully', data: admin });
@@ -46,7 +46,7 @@ export const newAdmin = async (req, res) => {
  */
 
 export const getAdmins = async (req, res) => {
-	const admins = await Admin.find();
+	const admins = await Admin.find({}, { password: 0, createdAt: 0, updatedAt: 0 });
 	return res.status(StatusCodes.OK).json({ data: admins });
 };
 
@@ -68,7 +68,7 @@ export const getAdminById = async (req, res) => {
 	if (!Mongoose.Types.ObjectId.isValid(id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
 
-	const admin = await Admin.findById(id);
+	const admin = await Admin.findById(id, { password: 0, createdAt: 0, updatedAt: 0 });
 
 	if (!admin) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Admin does not exist' });
 
@@ -144,20 +144,20 @@ export const adminLogin = async (req, res) => {
 		body: { email, password }
 	} = req;
 
-	if (!email) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email field required' });
+	if (!email) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email field required' });
 
 	if (!password)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'password field required' });
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Password field required' });
 
 	const admin = await Admin.findOne({ email }).select('name password');
 
 	if (!admin)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email or Password incorrect' });
 
 	const match = await bcrypt.compare(password, admin.password);
 
 	if (!match) {
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email or Password Incorrect' });
 	}
 
 	const { name, _id: id } = admin;

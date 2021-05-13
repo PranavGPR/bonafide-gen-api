@@ -2,7 +2,7 @@ import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import bcrypt from 'bcrypt';
 
-import { Staff, validateStaff } from 'models';
+import { Staff, validateStaff, Section } from 'models';
 import logger from 'tools/logging';
 
 /**
@@ -11,7 +11,7 @@ import logger from 'tools/logging';
  *
  * @route: /staff/new
  * @method: POST
- * @requires: body{ name, profileImg, password,designation, department, campus, phoneNumber, email, sectionId}
+ * @requires: body{ name, profileImg, password,designation, department, campus, phoneNumber, email, section}
  * @returns: 'Successfully added' | 'Could not add the staff'
  *
  */
@@ -25,7 +25,16 @@ export const newStaff = async (req, res) => {
 
 	body.password = await bcrypt.hash(body.password, 10);
 
-	let staff = await new Staff({ ...body });
+	let staff = new Staff({ ...body });
+
+	const section = await Section.findByIdAndUpdate(
+		body.section,
+		{ $push: { staffs: staff.id } },
+		{ new: true }
+	);
+	if (!section)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
+
 	staff = await staff.save();
 
 	return res.status(StatusCodes.OK).json({ message: 'Staff created successfully', data: staff });
@@ -68,7 +77,10 @@ export const getStaffById = async (req, res) => {
 	if (!Mongoose.Types.ObjectId.isValid(id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
 
-	const staff = await Staff.findById(id);
+	const staff = await Staff.findById(id, { password: 0, createdAt: 0, updatedAt: 0 }).populate(
+		'section',
+		'name'
+	);
 
 	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
 
@@ -95,6 +107,9 @@ export const updateStaff = async (req, res) => {
 	if (!Mongoose.Types.ObjectId.isValid(body.id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
 
+	delete body.password;
+	delete body.section;
+
 	const staff = await Staff.findByIdAndUpdate(body.id, { ...body }, { new: true });
 
 	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
@@ -110,7 +125,7 @@ export const updateStaff = async (req, res) => {
  *
  * @route: /staff/delete
  * @method: DELETE
- * @requires: body{ _id}
+ * @requires: body{ id}
  * @returns: 'Successfully deleted' | 'Could not delete the staff'
  *
  */
@@ -129,6 +144,8 @@ export const deleteStaff = async (req, res) => {
 	const staff = await Staff.findByIdAndDelete(id);
 
 	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
+
+	await Section.findByIdAndUpdate(staff.section, { $pull: { staffs: id } }, { new: true });
 
 	return res.status(StatusCodes.OK).json({ message: 'Staff deleted successfully', data: staff });
 };

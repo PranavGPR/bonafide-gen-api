@@ -135,10 +135,15 @@ export const updateSectionStaff = async (req, res) => {
 	if (!section)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
 
-	const staff = await Staff.findByIdAndUpdate(staffId, {
-		section: id
-	});
+	const staff = await Staff.findById(staffId);
 	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
+
+	if (staff.section)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff is not available' });
+
+	staff.section = id;
+
+	await staff.save();
 
 	const sectionUpdated = await Section.findByIdAndUpdate(
 		id,
@@ -181,11 +186,18 @@ export const updateSectionStudent = async (req, res) => {
 	if (!section)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
 
-	const student = await Student.findByIdAndUpdate(studentId, {
-		section: id
-	});
+	const student = await Student.findByIdAndUpdate(studentId);
 	if (!student)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Student does not exist' });
+
+	if (student.section)
+		return res
+			.status(StatusCodes.BAD_REQUEST)
+			.json({ error: 'Student is already in another section' });
+
+	student.section = id;
+
+	await student.save();
 
 	const sectionUpdated = await Section.findByIdAndUpdate(
 		id,

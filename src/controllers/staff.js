@@ -96,7 +96,7 @@ export const getStudentsBySection = async (req, res) => {
  */
 
 export const updateStaff = async (req, res) => {
-	const { id } = req.params;
+	const { id } = req.user;
 	const {
 		body: { phoneNumber, email }
 	} = req;

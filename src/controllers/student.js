@@ -1,4 +1,3 @@
-import Mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
@@ -11,24 +10,19 @@ import logger from 'tools/logging';
  *
  * Get a student by id
  *
- * @route: /:id
+ * @route:
  * @method: GET
  * @requires: body{}
  * @returns: Object{Student}
  *
  */
-export const getStudentById = async (req, res) => {
+export const getStudentDetail = async (req, res) => {
 	const { id } = req.user;
-	logger.debug('Acknowleged:', id);
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
-
-	const student = await Student.findById(id)
-		.select('registerNumber name section')
-		.populate('section', 'name -_id', 'section');
+	const student = await Student.findById(id, { createdAt: 0, updatedAt: 0 }).populate(
+		'section',
+		'name -_id'
+	);
 
 	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
 
@@ -41,21 +35,16 @@ export const getStudentById = async (req, res) => {
  *
  * @route: /update
  * @method: PUT
- * @requires: body{ id, phoneNumber, email}
+ * @requires: body{ phoneNumber, email}
  * @returns: 'Successfully updated' | 'Could not update the student'
  *
  */
 
 export const updateStudent = async (req, res) => {
+	const { id } = req.user;
 	const {
-		body: { id, phoneNumber, email }
+		body: { phoneNumber, email }
 	} = req;
-	logger.debug('Acknowledged: ', id, ' ', phoneNumber, ' ', email);
-
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
 
 	let fields = {
 		phoneNumber,
@@ -99,11 +88,20 @@ export const studentLogin = async (req, res) => {
 	if (!dateOfBirth)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'dateOfBirth field required' });
 
-	const student = await Student.findOne({ registerNumber }).select('name');
+	const student = await Student.findOne({ registerNumber }).select('name dateOfBirth');
 
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Student does not exist' });
 
 	const { _id: id, name } = student;
+
+	const inputDate = new Date(dateOfBirth);
+	const dbDate = new Date(student.dateOfBirth);
+	inputDate.setHours(0, 0, 0, 0);
+	dbDate.setHours(0, 0, 0, 0);
+
+	if (!(inputDate.getTime() === dbDate.getTime()))
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'DOB is wrong' });
 
 	const token = jwt.sign({ role: 'student', id, name }, config.get('jwtPrivateKey'));
 

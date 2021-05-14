@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import {
-	getStaffById,
+	getStaffProfile,
 	getStudentById,
 	getStudentsBySection,
 	staffLogin,
@@ -13,8 +13,8 @@ const router = Router();
 
 router.post('/login', staffLogin);
 router.put('/update', auth, isStaff, updateStaff);
-router.get('/profile', auth, isStaff, getStaffById);
+router.get('/profile', auth, isStaff, getStaffProfile);
 router.get('/student/:id', auth, isStaff, getStudentById);
-router.get('/section/student/all/:id', auth, isStaff, getStudentsBySection);
+router.get('/section/student', auth, isStaff, getStudentsBySection);
 
 export default router;

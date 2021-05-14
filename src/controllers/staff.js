@@ -27,9 +27,10 @@ export const getStudentById = async (req, res) => {
 	if (!Mongoose.Types.ObjectId.isValid(id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
 
-	const student = await Student.findById(id)
-		.select('registerNumber name section')
-		.populate('section', 'name -_id', 'section');
+	const student = await Student.findById(id, { createdAt: 0, updatedAt: 0 }).populate(
+		'section',
+		'name -_id'
+	);
 
 	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
 
@@ -38,26 +39,21 @@ export const getStudentById = async (req, res) => {
 
 /**
  *
- * Get a staff by id
+ * Get a staff profile
  *
- * @route: /:id
+ * @route:
  * @method: GET
  * @requires: body{}
  * @returns: Object{staff}
  *
  */
-export const getStaffById = async (req, res) => {
+export const getStaffProfile = async (req, res) => {
 	const { id } = req.user;
-	logger.debug('Acknowleged:', id);
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
-
-	const staff = await Staff.findById(id)
-		.select('name section')
-		.populate('section', 'name -_id', 'section');
+	const staff = await Staff.findById(id, { createdAt: 0, updatedAt: 0 }).populate(
+		'section',
+		'name -_id'
+	);
 
 	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
 
@@ -68,7 +64,7 @@ export const getStaffById = async (req, res) => {
  *
  * Get students by section
  *
- * @route: /section/student/all/:id
+ * @route: /section/student
  * @method: GET
  * @requires: body{}
  * @returns: Object{staff}
@@ -76,15 +72,12 @@ export const getStaffById = async (req, res) => {
  */
 
 export const getStudentsBySection = async (req, res) => {
-	const { id } = req.params;
-	logger.debug('Acknowleged:', id);
+	const { id } = req.user;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	const staff = await Staff.findById(id);
+	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
 
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
-
-	const students = await Student.find({ section: id }).populate('section', 'name -_id', 'section');
+	const students = await Student.find({ section: staff.section }, { createdAt: 0, updatedAt: 0 });
 
 	if (!students) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
 
@@ -97,21 +90,17 @@ export const getStudentsBySection = async (req, res) => {
  *
  * @route: /update
  * @method: PUT
- * @requires: body{ id, phoneNumber, email}
+ * @requires: body{ phoneNumber, email}
  * @returns: 'Successfully updated' | 'Could not update the staff'
  *
  */
 
 export const updateStaff = async (req, res) => {
+	const { id } = req.params;
 	const {
-		body: { id, phoneNumber, email }
+		body: { phoneNumber, email }
 	} = req;
 	logger.debug('Acknowledged: ', id, ' ', phoneNumber, ' ', email);
-
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
 
 	let fields = {
 		phoneNumber,

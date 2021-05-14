@@ -1,6 +1,12 @@
 import { Router } from 'express';
 
-import { getStudentDetail, studentLogin, updateStudent } from 'controllers/student';
+import {
+	getStudentDetail,
+	studentLogin,
+	updateStudent,
+	getBonafideStatus,
+	applyBonafide
+} from 'controllers/student';
 import { auth, isStudent } from 'middlewares';
 
 const router = Router();
@@ -8,5 +14,9 @@ const router = Router();
 router.post('/login', studentLogin);
 router.put('/update', auth, isStudent, updateStudent);
 router.get('/profile', auth, isStudent, getStudentDetail);
+router.get('/profile', auth, isStudent, getStudentDetail);
+router.get('/profile', auth, isStudent, getStudentDetail);
+router.get('/bonafide/status', auth, isStudent, getBonafideStatus);
+router.get('/bonafide/apply', auth, isStudent, applyBonafide);
 
 export default router;

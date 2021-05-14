@@ -3,7 +3,7 @@ import 'dotenv/config';
 import config from 'config';
 import { StatusCodes } from 'http-status-codes';
 
-import { Student } from 'models';
+import { Student, Certificate } from 'models';
 import logger from 'tools/logging';
 
 /**
@@ -106,4 +106,50 @@ export const studentLogin = async (req, res) => {
 	const token = jwt.sign({ role: 'student', id, name }, config.get('jwtPrivateKey'));
 
 	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
+};
+
+/**
+ *
+ * Get a bonafide  status
+ *
+ * @route:
+ * @method: GET
+ * @requires: body{}
+ * @returns: Object{Student}
+ *
+ */
+export const getBonafideStatus = async (req, res) => {
+	const { id } = req.user;
+
+	const certificate = await Certificate.findOne({ studentID: id }).populate('studentID');
+
+	return res.status(StatusCodes.OK).json({ data: certificate });
+};
+
+/**
+ *
+ * Apply bonafide
+ *
+ * @route:
+ * @method: GET
+ * @requires: body{}
+ * @returns: Object{Student}
+ *
+ */
+export const applyBonafide = async (req, res) => {
+	const { id } = req.user;
+
+	const student = await Student.findById(id);
+	const certificate = new Certificate({
+		studentID: id,
+		sectionID: student.section
+	});
+
+	await certificate.save();
+
+	logger.debug('need to send email');
+
+	return res
+		.status(StatusCodes.OK)
+		.json({ message: 'Bonafide applied successfully', data: certificate });
 };

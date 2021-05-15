@@ -145,7 +145,7 @@ export const applyBonafide = async (req, res) => {
 	if (!student.section)
 		return res
 			.status(StatusCodes.BAD_REQUEST)
-			.json({ error: 'You must be part of some section ! contact staff' });
+			.json({ error: 'You must be part of some section! Contact your Class Coordinator.' });
 
 	const certificate = new Certificate({
 		studentID: id,

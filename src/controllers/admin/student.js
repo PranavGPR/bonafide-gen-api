@@ -49,10 +49,9 @@ export const newStudent = async (req, res) => {
  */
 
 export const getStudents = async (req, res) => {
-	const students = await Student.find({}, { createdAt: 0, updatedAt: 0 }).populate(
-		'section',
-		'name'
-	);
+	const students = await Student.find({}, { createdAt: 0, updatedAt: 0 })
+		.populate('section', 'name')
+		.sort('registerNumber');
 	return res.status(StatusCodes.OK).json({ data: students });
 };
 

@@ -78,10 +78,9 @@ export const getStudentsBySection = async (req, res) => {
 	const staff = await Staff.findById(id);
 	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
 
-	const students = await Student.find(
-		{ section: staff.section },
-		{ createdAt: 0, updatedAt: 0 }
-	).populate('section', 'name -_id');
+	const students = await Student.find({ section: staff.section }, { createdAt: 0, updatedAt: 0 })
+		.populate('section', 'name -_id')
+		.sort('registerNumber');
 
 	if (!students) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
 

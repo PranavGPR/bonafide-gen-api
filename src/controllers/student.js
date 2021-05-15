@@ -140,6 +140,12 @@ export const applyBonafide = async (req, res) => {
 	const { id } = req.user;
 
 	const student = await Student.findById(id);
+
+	if (!student.section)
+		return res
+			.status(StatusCodes.BAD_REQUEST)
+			.json({ error: 'You must be part of some section ! contact staff' });
+
 	const certificate = new Certificate({
 		studentID: id,
 		sectionID: student.section

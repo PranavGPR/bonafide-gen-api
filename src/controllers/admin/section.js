@@ -186,7 +186,12 @@ export const updateSectionStudent = async (req, res) => {
 	if (!section)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
 
-	const student = await Student.findByIdAndUpdate(studentId);
+	if (section.staffs.length === 0)
+		return res
+			.status(StatusCodes.BAD_REQUEST)
+			.json({ error: 'Section should contains atLeast one staff' });
+
+	const student = await Student.findById(studentId);
 	if (!student)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Student does not exist' });
 
@@ -239,6 +244,11 @@ export const removeSectionStaff = async (req, res) => {
 	const section = await Section.findById(id);
 	if (!section)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
+
+	if (section.staffs.length <= 1 && section.students.length > 0)
+		return res
+			.status(StatusCodes.BAD_REQUEST)
+			.json({ error: 'Section should contains atLeast one staff' });
 
 	const staff = await Staff.findByIdAndUpdate(staffId, {
 		section: null

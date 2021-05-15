@@ -2,8 +2,9 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
 import { StatusCodes } from 'http-status-codes';
+import transporter from 'MailConnection';
 
-import { Student, Certificate } from 'models';
+import { Student, Certificate, Section } from 'models';
 import logger from 'tools/logging';
 
 /**
@@ -153,7 +154,31 @@ export const applyBonafide = async (req, res) => {
 
 	await certificate.save();
 
-	logger.debug('need to send email');
+	const { staffs } = await Section.findById(student.section)
+		.select('staffs -_id')
+		.populate('staffs', '-_id name email');
+
+	let to = '';
+
+	for (let i = 0; i < staffs.length; i++) {
+		to += staffs[i].email;
+		if (i + 1 !== staffs.length) to += ',';
+	}
+
+	let mailOptions = {
+		from: `"AUBIT" ${config.get('MAIL_USER_NAME')}`,
+		to: to,
+		subject: 'New Bonafide Applied',
+		html: `
+			<h3>Your student ${student.name} has applied for a new bonafide certificate.</h3>
+			<p><a href=${config.get('WEBSITE_URL')}>Click here</a> to view and approve the request.</p>`
+	};
+
+	try {
+		await transporter.sendMail(mailOptions);
+	} catch (err) {
+		logger.error(err);
+	}
 
 	return res
 		.status(StatusCodes.OK)

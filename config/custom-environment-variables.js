@@ -11,5 +11,8 @@ module.exports = {
 	port: 'PORT',
 	logRequests: 'VERBOSE_REQ_LOGGING',
 	DB_SERVER: 'DB_SERVER',
-	jwtPrivateKey: 'jwtPrivateKey'
+	jwtPrivateKey: 'jwtPrivateKey',
+	MAIL_USER_NAME: 'MAIL_USER_NAME',
+	MAIL_PASSWORD: 'MAIL_PASSWORD',
+	WEBSITE_URL: 'WEBSITE_URL'
 };

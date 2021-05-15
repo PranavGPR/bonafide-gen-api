@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
 import bcrypt from 'bcrypt';
+import transporter from 'MailConnection';
 
 import logger from 'tools/logging';
 import { Student, Staff, Certificate } from 'models';
@@ -239,6 +240,25 @@ export const updateBonafideStatus = async (req, res) => {
 		},
 		{ new: true }
 	);
+
+	const { email } = await Student.findById(certificate.studentID);
+
+	let mailOptions = {
+		from: `"AUBIT" ${config.get('MAIL_USER_NAME')}`,
+		to: email,
+		subject: `Bonafide ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+		html: `
+			<h3>Your bonafide application has been approved!</h3>
+			<p><a href=${config.get(
+				'WEBSITE_URL'
+			)}>Click here</a> to view and download your bonafide certificate.</p>`
+	};
+
+	try {
+		await transporter.sendMail(mailOptions);
+	} catch (err) {
+		logger.error(err);
+	}
 
 	return res.status(StatusCodes.OK).json({ data: certificate });
 };

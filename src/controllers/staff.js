@@ -6,7 +6,7 @@ import config from 'config';
 import bcrypt from 'bcrypt';
 
 import logger from 'tools/logging';
-import { Student, Staff } from 'models';
+import { Student, Staff, Certificate } from 'models';
 
 /**
  *
@@ -160,4 +160,85 @@ export const staffLogin = async (req, res) => {
 	const token = jwt.sign({ role: 'staff', id, name }, config.get('jwtPrivateKey'));
 
 	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
+};
+
+/**
+ *
+ * Get a applied bonafide
+ *
+ * @route:
+ * @method: GET
+ * @requires: body{}
+ * @returns: Object{Student}
+ *
+ */
+export const getAppliedBonafide = async (req, res) => {
+	const { id } = req.user;
+
+	const staff = await Staff.findById(id);
+
+	const certificate = await Certificate.find({
+		sectionID: staff.section,
+		status: 'applied'
+	}).populate('studentID');
+
+	return res.status(StatusCodes.OK).json({ data: certificate });
+};
+
+/**
+ *
+ * Get a bonafide history
+ *
+ * @route:
+ * @method: GET
+ * @requires: body{}
+ * @returns: Object{Student}
+ *
+ */
+export const getBonafideHistory = async (req, res) => {
+	const { id } = req.user;
+
+	const staff = await Staff.findById(id);
+
+	const certificate = await Certificate.find({
+		sectionID: staff.section,
+		status: { $ne: 'applied' }
+	}).populate('studentID');
+
+	return res.status(StatusCodes.OK).json({ data: certificate });
+};
+
+/**
+ *
+ * update a bonafide status
+ *
+ * @route:
+ * @method: PUT
+ * @requires: body{bonafideID, status}
+ * @returns: Object{Student}
+ *
+ */
+export const updateBonafideStatus = async (req, res) => {
+	const { id } = req.user;
+	const { bonafideID, status } = req.body;
+
+	if (!bonafideID)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Bonafide ID field required' });
+
+	if (!Mongoose.Types.ObjectId.isValid(bonafideID))
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Bonafide ID must be valid' });
+
+	if (status !== 'approved' && status !== 'rejected')
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Status must be valid' });
+
+	const certificate = await Certificate.findByIdAndUpdate(
+		bonafideID,
+		{
+			verifiedBy: id,
+			status
+		},
+		{ new: true }
+	);
+
+	return res.status(StatusCodes.OK).json({ data: certificate });
 };

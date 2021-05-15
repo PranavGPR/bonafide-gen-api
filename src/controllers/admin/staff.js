@@ -141,9 +141,19 @@ export const deleteStaff = async (req, res) => {
 	if (!Mongoose.Types.ObjectId.isValid(id))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
 
+	const staffWithSection = await Staff.findById(id).populate('section');
+
+	if (
+		staffWithSection &&
+		staffWithSection.section &&
+		staffWithSection.section.staffs.length === 1 &&
+		staffWithSection.section.students.length > 0
+	)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff is bind with section' });
+
 	const staff = await Staff.findByIdAndDelete(id);
 
-	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
+	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
 
 	await Section.findByIdAndUpdate(staff.section, { $pull: { staffs: id } }, { new: true });
 

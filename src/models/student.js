@@ -18,6 +18,7 @@ const StudentSchema = new Schema(
 		dateOfBirth: { type: Date, required: true },
 		degree: { type: String, required: true },
 		department: { type: String, required: true },
+		gender: { type: String, required: true },
 		batch: { type: String, required: true },
 		campus: { type: String, required: true, default: 'AUBIT' },
 		phoneNumber: { type: Number, min: 4444444444, max: 9999999999, required: true },
@@ -42,6 +43,7 @@ export const validateStudent = data => {
 		dateOfBirth: Joi.date().required(),
 		degree: Joi.string().required(),
 		department: Joi.string().required(),
+		gender: Joi.string().required(),
 		batch: Joi.string().required(),
 		campus: Joi.string().required(),
 		phoneNumber: Joi.number().min(4444444444).max(9999999999).required().messages({

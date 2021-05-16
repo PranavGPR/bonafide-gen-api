@@ -3,10 +3,10 @@ import { StatusCodes } from 'http-status-codes';
 /**
  * Controllers for all /ping routes
  *
- * Available controllers: testPing
+ * Available controllers: basePing
  */
 
-export function testPing(_req, res) {
+export function basePing(_req, res) {
 	/**
 	 * Ping the server
 	 * @param {}
@@ -15,4 +15,4 @@ export function testPing(_req, res) {
 	res.sendStatus(StatusCodes.OK);
 }
 
-export default { testPing };
+export default { basePing };

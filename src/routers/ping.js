@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { testPing } from 'controllers/ping.controller';
+import { basePing } from 'controllers/ping';
 
 const router = Router();
 
@@ -9,6 +9,6 @@ const router = Router();
  * Available routes: /
  */
 
-router.get('/', testPing);
+router.get('/', basePing);
 
 export default router;

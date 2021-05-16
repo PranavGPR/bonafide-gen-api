@@ -1,3 +1,4 @@
+require('dotenv').config();
 import express from 'express';
 import chalk from 'chalk';
 import 'express-async-errors';
@@ -11,7 +12,7 @@ import { registerLogging, registerPreprocessor, registerRouters } from 'tools';
 import { dbConnection } from './dbConnection';
 import logger from 'tools/logging';
 
-const PORT = config.get('port');
+const PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : config.get('port');
 const HOST = config.get('host');
 
 const app = express();

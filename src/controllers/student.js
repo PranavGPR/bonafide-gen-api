@@ -3,6 +3,7 @@ import 'dotenv/config';
 import config from 'config';
 import { StatusCodes } from 'http-status-codes';
 import transporter from 'MailConnection';
+import Mongoose from 'mongoose';
 
 import { Student, Certificate, Section } from 'models';
 import logger from 'tools/logging';
@@ -183,4 +184,71 @@ export const applyBonafide = async (req, res) => {
 	return res
 		.status(StatusCodes.OK)
 		.json({ message: 'Bonafide applied successfully', data: certificate });
+};
+
+/**
+ *
+ * Re-request review
+ *
+ * @route:
+ * @method: PUT
+ * @requires: body{bonafideID}
+ * @returns: Object{Student}
+ *
+ */
+export const reviewBonafide = async (req, res) => {
+	const { id } = req.user;
+	const { bonafideID } = req.body;
+
+	if (!bonafideID)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'bonafideID field required' });
+
+	if (!Mongoose.Types.ObjectId.isValid(bonafideID))
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'bonafideID must be valid' });
+
+	const student = await Student.findById(id);
+
+	if (!student.section)
+		return res
+			.status(StatusCodes.BAD_REQUEST)
+			.json({ error: 'You must be part of some section! Contact your Class Coordinator.' });
+
+	const certificate = await Certificate.findByIdAndUpdate(
+		bonafideID,
+		{ status: 'applied' },
+		{ new: true }
+	);
+
+	if (!certificate)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Certificate not found' });
+
+	const { staffs } = await Section.findById(student.section)
+		.select('staffs -_id')
+		.populate('staffs', '-_id name email');
+
+	let to = '';
+
+	for (let i = 0; i < staffs.length; i++) {
+		to += staffs[i].email;
+		if (i + 1 !== staffs.length) to += ',';
+	}
+
+	let mailOptions = {
+		from: `"AUBIT" ${config.get('MAIL_USER_NAME')}`,
+		to: to,
+		subject: 'Bonafide Re-request',
+		html: `
+			<h3>Your student ${student.name} has re-requested your review for a bonafide certificate.</h3>
+			<p><a href=${config.get('WEBSITE_URL')}>Click here</a> to view and approve the request.</p>`
+	};
+
+	try {
+		await transporter.sendMail(mailOptions);
+	} catch (err) {
+		logger.error(err);
+	}
+
+	return res
+		.status(StatusCodes.OK)
+		.json({ message: 'Bonafide re-requested successfully', data: certificate });
 };

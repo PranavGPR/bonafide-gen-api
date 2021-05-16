@@ -5,7 +5,8 @@ import {
 	studentLogin,
 	updateStudent,
 	getBonafideStatus,
-	applyBonafide
+	applyBonafide,
+	reviewBonafide
 } from 'controllers/student';
 import { auth, isStudent } from 'middlewares';
 
@@ -18,5 +19,6 @@ router.get('/profile', auth, isStudent, getStudentDetail);
 router.get('/profile', auth, isStudent, getStudentDetail);
 router.get('/bonafide/status', auth, isStudent, getBonafideStatus);
 router.get('/bonafide/apply', auth, isStudent, applyBonafide);
+router.put('/bonafide/review', auth, isStudent, reviewBonafide);
 
 export default router;

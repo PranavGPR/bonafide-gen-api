@@ -66,7 +66,9 @@ export const getSectionById = async (req, res) => {
 
 	const section = await Section.findById(id)
 		.populate('staffs', 'name designation department campus email')
-		.populate('students', 'name degree department campus registerNumber ');
+		.populate('students', 'name degree department campus registerNumber ', null, {
+			sort: { registerNumber: 1 }
+		});
 
 	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
 

@@ -6,7 +6,6 @@ import config from 'config';
 import bcrypt from 'bcrypt';
 
 import { Section, Student, Staff, validateAdmin, Admin } from 'models';
-import logger from 'tools/logging';
 
 /**
  *
@@ -21,7 +20,6 @@ import logger from 'tools/logging';
 
 export const newAdmin = async (req, res) => {
 	const { body } = req;
-	logger.debug('Acknowledged: ', body);
 
 	const { error } = validateAdmin(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
@@ -89,7 +87,6 @@ export const deleteAdmin = async (req, res) => {
 	const {
 		body: { id }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 

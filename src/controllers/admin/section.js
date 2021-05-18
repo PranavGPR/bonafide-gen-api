@@ -17,7 +17,6 @@ import logger from 'tools/logging';
 
 export const newSection = async (req, res) => {
 	const { body } = req;
-	logger.info('Acknowledged: ', body);
 
 	const { error } = validateSection(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
@@ -90,7 +89,6 @@ export const updateSectionName = async (req, res) => {
 	const {
 		body: { id, name }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 	if (!name) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'name field required' });
@@ -124,7 +122,6 @@ export const updateSectionStaff = async (req, res) => {
 	const {
 		body: { id, staffId }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 	if (!staffId)
@@ -175,7 +172,6 @@ export const updateSectionStudent = async (req, res) => {
 	const {
 		body: { id, studentId }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 	if (!studentId)
@@ -234,7 +230,6 @@ export const removeSectionStaff = async (req, res) => {
 	const {
 		body: { id, staffId }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 	if (!staffId)
@@ -285,7 +280,6 @@ export const removeSectionStudent = async (req, res) => {
 	const {
 		body: { id, studentId }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 	if (!studentId)
@@ -331,7 +325,6 @@ export const deleteSection = async (req, res) => {
 	const {
 		body: { id }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 

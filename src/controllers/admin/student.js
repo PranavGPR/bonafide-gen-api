@@ -17,7 +17,6 @@ import logger from 'tools/logging';
 
 export const newStudent = async (req, res) => {
 	const { body } = req;
-	logger.debug('Acknowledged: ', body);
 
 	const { error } = validateStudent(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
@@ -125,7 +124,6 @@ export const getStudentByRegisterNumber = async (req, res) => {
 
 export const updateStudent = async (req, res) => {
 	const { body } = req;
-	logger.debug('Acknowledged: ', body.id);
 
 	if (!body.id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 
@@ -160,7 +158,6 @@ export const deleteStudent = async (req, res) => {
 	const {
 		body: { id }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 

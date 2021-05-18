@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 export default (err, req, res, next) => {
 	const { body } = req;
 
-	logger.error(err.message, err);
+	logger.error(err.message ?? err);
 
 	if (err.code === 11000) {
 		const errorKeys = Object.keys(err.keyPattern);

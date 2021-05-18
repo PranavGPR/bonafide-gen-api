@@ -18,7 +18,6 @@ import logger from 'tools/logging';
 
 export const newStaff = async (req, res) => {
 	const { body } = req;
-	logger.debug('Acknowledged: ', body);
 
 	const { error } = validateStaff(body);
 	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
@@ -100,7 +99,6 @@ export const getStaffById = async (req, res) => {
 
 export const updateStaff = async (req, res) => {
 	const { body } = req;
-	logger.debug('Acknowledged: ', body.id);
 
 	if (!body.id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 
@@ -134,7 +132,6 @@ export const deleteStaff = async (req, res) => {
 	const {
 		body: { id }
 	} = req;
-	logger.debug('Acknowledged: ', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 

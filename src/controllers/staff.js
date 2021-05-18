@@ -21,7 +21,6 @@ import { Student, Staff, Certificate } from 'models';
  */
 export const getStudentById = async (req, res) => {
 	const { id } = req.params;
-	logger.debug('Acknowleged:', id);
 
 	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
 
@@ -103,7 +102,6 @@ export const updateStaff = async (req, res) => {
 	const {
 		body: { phoneNumber, email }
 	} = req;
-	logger.debug('Acknowledged: ', id, ' ', phoneNumber, ' ', email);
 
 	let fields = {
 		phoneNumber,

@@ -16,10 +16,11 @@ export const dbConnection = async () => {
 	};
 	try {
 		logger.debug(`Database server is at ${chalk.cyan(DB_SERVER)}`);
-		mongoose.connect(DB_SERVER, options);
-		await logger.info(`Database connection ${chalk.greenBright('successful')}`);
+		await mongoose.connect(DB_SERVER, options);
+		logger.info(`Database connection ${chalk.greenBright('successful')}`);
 	} catch (err) {
 		logger.error(`Database connection ${chalk.redBright('failed.')}`);
-		logger.error(`Error: could not connect to the database at ${DB_SERVER}\n`, err);
+		logger.error(`Error: could not connect to the database at ${DB_SERVER}\n`);
+		logger.error(err);
 	}
 };

@@ -10,6 +10,18 @@ export function registerLogging(app) {
 	if (config.get('logRequests')) app.use(requestLogger);
 }
 
+function formatObject(param) {
+	if (typeof param === 'string') {
+		return param;
+	}
+
+	if (param instanceof Error) {
+		return param.stack ? param.stack : JSON.stringify(param, null, 2);
+	}
+
+	return JSON.stringify(param, null, 2);
+}
+
 const prettyConsoleTransport = new transports.Console({
 	format: combine(
 		colorize(),
@@ -17,7 +29,7 @@ const prettyConsoleTransport = new transports.Console({
 		printf(info => {
 			return `[${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString(
 				'en-US'
-			)}] ${info.level} | ${info.message}`;
+			)}] ${info.level} | ${formatObject(info.message)}`;
 		})
 	)
 });

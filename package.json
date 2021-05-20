@@ -12,7 +12,7 @@
 		"format:check": "prettier -c \"**/*.{js,mjs}\"",
 		"lint": "eslint \"src/**/*.{js,mjs}\"",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "jest"
+		"test": "jest --watchAll --verbose --detectOpenHandles"
 	},
 	"keywords": [],
 	"author": "PranavGPR",
@@ -50,6 +50,7 @@
 		"eslint-plugin-jest": "^24.3.5",
 		"jest": "^26.6.3",
 		"nodemon": "^2.0.7",
-		"prettier": "^2.2.1"
+		"prettier": "^2.2.1",
+		"supertest": "^6.1.3"
 	}
 }

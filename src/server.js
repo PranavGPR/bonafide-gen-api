@@ -26,3 +26,5 @@ server.once('listening', async () => {
 	logger.info(`Server started at port ${chalk.magenta(PORT)}`);
 	await dbConnection();
 });
+
+module.exports = server;

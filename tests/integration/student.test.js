@@ -283,7 +283,7 @@ describe('/student/', () => {
 			const res = await exec();
 
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('error', 'bonafideID field required');
+			expect(res.body).toHaveProperty('error', '"bonafideID" is required');
 		});
 
 		it('should return 400 if bonafideID is not an valid object', async () => {
@@ -291,7 +291,7 @@ describe('/student/', () => {
 			const res = await exec();
 
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('error', 'bonafideID must be valid');
+			expect(res.body).toHaveProperty('error', '"bonafideID" must be valid');
 		});
 
 		it('should return 400 with if section is null', async () => {

@@ -1,12 +1,10 @@
-import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
 import { StatusCodes } from 'http-status-codes';
 import transporter from 'MailConnection';
-import Mongoose from 'mongoose';
 
 import { Student, Certificate, Section } from 'models';
-import { sendSuccess, sendFailure } from 'helpers';
+import { sendSuccess, sendFailure, generateToken } from 'helpers';
 import logger from 'tools/logging';
 
 /**
@@ -45,21 +43,9 @@ export const getStudentDetail = async (req, res) => {
 
 export const updateStudent = async (req, res) => {
 	const { id } = req.user;
-	const {
-		body: { phoneNumber, email }
-	} = req;
+	const { body } = req;
 
-	let fields = {
-		phoneNumber,
-		email
-	};
-
-	fields = JSON.parse(JSON.stringify(fields, (k, v) => v ?? undefined));
-	let len = Object.keys(fields).length;
-
-	if (len === 0) return sendFailure(res, { error: 'No fields specified' });
-
-	const student = await Student.findByIdAndUpdate(id, { ...fields }, { new: true });
+	const student = await Student.findByIdAndUpdate(id, { ...body }, { new: true });
 
 	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
@@ -84,9 +70,6 @@ export const studentLogin = async (req, res) => {
 		body: { registerNumber, dateOfBirth }
 	} = req;
 
-	if (!registerNumber) return sendFailure(res, { error: 'registerNumber field required' });
-	if (!dateOfBirth) return sendFailure(res, { error: 'dateOfBirth field required' });
-
 	const student = await Student.findOne({ registerNumber }).select('name dateOfBirth');
 
 	if (!student) return sendFailure(res, { error: 'Student does not exist' });
@@ -101,7 +84,7 @@ export const studentLogin = async (req, res) => {
 	if (!(inputDate.getTime() === dbDate.getTime()))
 		return sendFailure(res, { error: 'DOB is wrong' });
 
-	const token = jwt.sign({ role: 'student', id, name }, config.get('jwtPrivateKey'));
+	const token = generateToken({ role: 'student', id, name });
 
 	return sendSuccess(res, { message: 'Logged in Successfully', token, name });
 };
@@ -148,7 +131,6 @@ export const applyBonafide = async (req, res) => {
 		studentID: id,
 		sectionID: student.section
 	});
-
 	await certificate.save();
 
 	const { staffs } = await Section.findById(student.section)
@@ -195,11 +177,6 @@ export const applyBonafide = async (req, res) => {
 export const reviewBonafide = async (req, res) => {
 	const { id } = req.user;
 	const { bonafideID } = req.body;
-
-	if (!bonafideID) return sendFailure(res, { error: 'bonafideID field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(bonafideID))
-		return sendFailure(res, { error: 'bonafideID must be valid' });
 
 	const student = await Student.findById(id);
 

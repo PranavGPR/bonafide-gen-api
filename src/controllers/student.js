@@ -176,7 +176,9 @@ export const applyBonafide = async (req, res) => {
 	};
 
 	try {
-		await transporter.sendMail(mailOptions);
+		if (process.env.NODE_ENV !== 'test') {
+			await transporter.sendMail(mailOptions);
+		}
 	} catch (err) {
 		logger.error(err);
 	}
@@ -243,7 +245,9 @@ export const reviewBonafide = async (req, res) => {
 	};
 
 	try {
-		await transporter.sendMail(mailOptions);
+		if (process.env.NODE_ENV !== 'test') {
+			await transporter.sendMail(mailOptions);
+		}
 	} catch (err) {
 		logger.error(err);
 	}

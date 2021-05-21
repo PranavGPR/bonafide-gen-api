@@ -39,10 +39,10 @@ describe('/student/', () => {
 			expect(res.body).toHaveProperty('error');
 		});
 
-		it('should return 400 if student not found', async () => {
+		it('should return 404 if student not found', async () => {
 			const res = await exec();
 
-			expect(res.status).toBe(400);
+			expect(res.status).toBe(404);
 			expect(res.body).toHaveProperty('error', 'Student does not exist');
 		});
 
@@ -312,11 +312,11 @@ describe('/student/', () => {
 			);
 		});
 
-		it('should return 400 with if certificate not found', async () => {
+		it('should return 404 with if certificate not found', async () => {
 			payload.bonafideID = section._id;
 			const res = await exec();
 
-			expect(res.status).toBe(400);
+			expect(res.status).toBe(404);
 		});
 
 		it('should return 200 with if certificate re-requested', async () => {

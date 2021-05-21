@@ -72,7 +72,7 @@ export const studentLogin = async (req, res) => {
 
 	const student = await Student.findOne({ registerNumber }).select('name dateOfBirth');
 
-	if (!student) return sendFailure(res, { error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
 	const { _id: id, name } = student;
 
@@ -191,7 +191,8 @@ export const reviewBonafide = async (req, res) => {
 		{ new: true }
 	);
 
-	if (!certificate) return sendFailure(res, { error: 'Certificate not found' });
+	if (!certificate)
+		return sendFailure(res, { error: 'Certificate not found' }, StatusCodes.NOT_FOUND);
 
 	const { staffs } = await Section.findById(student.section)
 		.select('staffs -_id')

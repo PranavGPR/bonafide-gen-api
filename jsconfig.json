@@ -8,10 +8,11 @@
 			"controllers/*": ["controllers/*"]
 		}
 	},
-	"include": ["src"],
+	"include": ["src", "tests"],
 	"exclude": ["node_modules"],
 	"compileOnSave": true,
 	"typeAcquisition": {
-		"exclude": ["dotenv"]
+		"exclude": ["dotenv"],
+		"include": ["jest"]
 	}
 }

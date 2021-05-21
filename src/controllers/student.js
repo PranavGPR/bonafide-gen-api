@@ -1,11 +1,10 @@
-import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
 import { StatusCodes } from 'http-status-codes';
 import transporter from 'MailConnection';
-import Mongoose from 'mongoose';
 
 import { Student, Certificate, Section } from 'models';
+import { sendSuccess, sendFailure, generateToken } from 'helpers';
 import logger from 'tools/logging';
 
 /**
@@ -26,9 +25,9 @@ export const getStudentDetail = async (req, res) => {
 		'name -_id'
 	);
 
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ data: student });
+	return sendSuccess(res, { data: student });
 };
 
 /**
@@ -44,29 +43,15 @@ export const getStudentDetail = async (req, res) => {
 
 export const updateStudent = async (req, res) => {
 	const { id } = req.user;
-	const {
-		body: { phoneNumber, email }
-	} = req;
+	const { body } = req;
 
-	let fields = {
-		phoneNumber,
-		email
-	};
+	const student = await Student.findByIdAndUpdate(id, { ...body }, { new: true });
 
-	fields = JSON.parse(JSON.stringify(fields, (k, v) => v ?? undefined));
-	let len = Object.keys(fields).length;
-
-	if (len === 0) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'No fields specified' });
-
-	const student = await Student.findByIdAndUpdate(id, { ...fields }, { new: true });
-
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
 	logger.debug('Student updated successfully');
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Student updated successfully', data: student });
+	return sendSuccess(res, { message: 'Student updated successfully', data: student });
 };
 
 /**
@@ -85,15 +70,9 @@ export const studentLogin = async (req, res) => {
 		body: { registerNumber, dateOfBirth }
 	} = req;
 
-	if (!registerNumber)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'registerNumber field required' });
-	if (!dateOfBirth)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'dateOfBirth field required' });
-
 	const student = await Student.findOne({ registerNumber }).select('name dateOfBirth');
 
-	if (!student)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
 	const { _id: id, name } = student;
 
@@ -103,11 +82,11 @@ export const studentLogin = async (req, res) => {
 	dbDate.setHours(0, 0, 0, 0);
 
 	if (!(inputDate.getTime() === dbDate.getTime()))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'DOB is wrong' });
+		return sendFailure(res, { error: 'DOB is wrong' });
 
-	const token = jwt.sign({ role: 'student', id, name }, config.get('jwtPrivateKey'));
+	const token = generateToken({ role: 'student', id, name });
 
-	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
+	return sendSuccess(res, { message: 'Logged in Successfully', token, name });
 };
 
 /**
@@ -125,7 +104,7 @@ export const getBonafideStatus = async (req, res) => {
 
 	const certificate = await Certificate.findOne({ studentID: id }).populate('studentID');
 
-	return res.status(StatusCodes.OK).json({ data: certificate });
+	return sendSuccess(res, { data: certificate });
 };
 
 /**
@@ -144,15 +123,14 @@ export const applyBonafide = async (req, res) => {
 	const student = await Student.findById(id);
 
 	if (!student.section)
-		return res
-			.status(StatusCodes.BAD_REQUEST)
-			.json({ error: 'You must be part of some section! Contact your Class Coordinator.' });
+		return sendFailure(res, {
+			error: 'You must be part of some section! Contact your Class Coordinator.'
+		});
 
 	const certificate = new Certificate({
 		studentID: id,
 		sectionID: student.section
 	});
-
 	await certificate.save();
 
 	const { staffs } = await Section.findById(student.section)
@@ -176,14 +154,14 @@ export const applyBonafide = async (req, res) => {
 	};
 
 	try {
-		await transporter.sendMail(mailOptions);
+		if (process.env.NODE_ENV !== 'test') {
+			await transporter.sendMail(mailOptions);
+		}
 	} catch (err) {
 		logger.error(err);
 	}
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Bonafide applied successfully', data: certificate });
+	return sendSuccess(res, { message: 'Bonafide applied successfully', data: certificate });
 };
 
 /**
@@ -200,18 +178,12 @@ export const reviewBonafide = async (req, res) => {
 	const { id } = req.user;
 	const { bonafideID } = req.body;
 
-	if (!bonafideID)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'bonafideID field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(bonafideID))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'bonafideID must be valid' });
-
 	const student = await Student.findById(id);
 
 	if (!student.section)
-		return res
-			.status(StatusCodes.BAD_REQUEST)
-			.json({ error: 'You must be part of some section! Contact your Class Coordinator.' });
+		return sendFailure(res, {
+			error: 'You must be part of some section! Contact your Class Coordinator.'
+		});
 
 	const certificate = await Certificate.findByIdAndUpdate(
 		bonafideID,
@@ -220,7 +192,7 @@ export const reviewBonafide = async (req, res) => {
 	);
 
 	if (!certificate)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Certificate not found' });
+		return sendFailure(res, { error: 'Certificate not found' }, StatusCodes.NOT_FOUND);
 
 	const { staffs } = await Section.findById(student.section)
 		.select('staffs -_id')
@@ -243,12 +215,12 @@ export const reviewBonafide = async (req, res) => {
 	};
 
 	try {
-		await transporter.sendMail(mailOptions);
+		if (process.env.NODE_ENV !== 'test') {
+			await transporter.sendMail(mailOptions);
+		}
 	} catch (err) {
 		logger.error(err);
 	}
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Bonafide re-requested successfully', data: certificate });
+	return sendSuccess(res, { message: 'Bonafide re-requested successfully', data: certificate });
 };

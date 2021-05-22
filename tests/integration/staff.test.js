@@ -47,10 +47,10 @@ describe('/staff/', () => {
 			expect(res.body).toHaveProperty('error');
 		});
 
-		it('should return 400 if staff not found', async () => {
+		it('should return 404 if staff not found', async () => {
 			const res = await exec();
 
-			expect(res.status).toBe(400);
+			expect(res.status).toBe(404);
 			expect(res.body).toHaveProperty('error', 'email or password incorrect');
 		});
 
@@ -222,10 +222,10 @@ describe('/staff/', () => {
 			expect(res.status).toBe(401);
 		});
 
-		it('should return 400 if staff is not found', async () => {
+		it('should return 404 if staff is not found', async () => {
 			const res = await exec();
 
-			expect(res.status).toBe(400);
+			expect(res.status).toBe(404);
 			expect(res.body).toHaveProperty('error', 'Staff does not exist');
 		});
 
@@ -374,7 +374,7 @@ describe('/staff/', () => {
 			expect(res.status).toBe(400);
 		});
 
-		it('should return 400 if status is invalid', async () => {
+		it('should return 400 if status is not invalid', async () => {
 			payload.status = 'applied';
 			const res = await exec();
 

@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import config from 'config';
 import { StatusCodes } from 'http-status-codes';
-import transporter from 'MailConnection';
 
+import transporter from 'MailConnection';
 import { Student, Certificate, Section } from 'models';
 import { sendSuccess, sendFailure, generateToken } from 'helpers';
 import logger from 'tools/logging';

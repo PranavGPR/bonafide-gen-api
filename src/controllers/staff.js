@@ -69,7 +69,7 @@ export const getStudentsBySection = async (req, res) => {
 	const { id } = req.user;
 
 	const staff = await Staff.findById(id);
-	if (!staff) return sendFailure(res, { error: 'Staff does not exist' });
+	if (!staff) return sendFailure(res, { error: 'Staff does not exist' }, StatusCodes.NOT_FOUND);
 
 	const students = await Student.find({ section: staff.section }, { createdAt: 0, updatedAt: 0 })
 		.populate('section', 'name -_id')
@@ -120,7 +120,8 @@ export const staffLogin = async (req, res) => {
 
 	const staff = await Staff.findOne({ email }).select('name password');
 
-	if (!staff) return sendFailure(res, { error: 'email or password incorrect' });
+	if (!staff)
+		return sendFailure(res, { error: 'email or password incorrect' }, StatusCodes.NOT_FOUND);
 
 	const match = await bcrypt.compare(password, staff.password);
 

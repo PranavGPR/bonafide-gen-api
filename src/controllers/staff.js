@@ -1,4 +1,3 @@
-import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import 'dotenv/config';
 import config from 'config';
@@ -21,10 +20,6 @@ import { Student, Staff, Certificate } from 'models';
  */
 export const getStudentById = async (req, res) => {
 	const { id } = req.params;
-
-	if (!id) return sendFailure(res, { error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'id must be valid' });
 
 	const student = await Student.findById(id, { createdAt: 0, updatedAt: 0 }).populate(
 		'section',
@@ -96,21 +91,9 @@ export const getStudentsBySection = async (req, res) => {
 
 export const updateStaff = async (req, res) => {
 	const { id } = req.user;
-	const {
-		body: { phoneNumber, email }
-	} = req;
+	const { body } = req;
 
-	let fields = {
-		phoneNumber,
-		email
-	};
-
-	fields = JSON.parse(JSON.stringify(fields, (k, v) => (v ? v : undefined)));
-	let len = Object.keys(fields).length;
-
-	if (len === 0) return sendFailure(res, { error: 'No fields specified' });
-
-	const staff = await Staff.findByIdAndUpdate(id, { ...fields }, { new: true });
+	const staff = await Staff.findByIdAndUpdate(id, { ...body }, { new: true });
 
 	if (!staff) return sendFailure(res, { error: 'Staff does not exist' }, StatusCodes.NOT_FOUND);
 
@@ -134,9 +117,6 @@ export const staffLogin = async (req, res) => {
 	const {
 		body: { email, password }
 	} = req;
-
-	if (!email) return sendFailure(res, { error: 'email field required' });
-	if (!password) return sendFailure(res, { error: 'password field required' });
 
 	const staff = await Staff.findOne({ email }).select('name password');
 
@@ -214,14 +194,6 @@ export const getBonafideHistory = async (req, res) => {
 export const updateBonafideStatus = async (req, res) => {
 	const { id } = req.user;
 	const { bonafideID, status } = req.body;
-
-	if (!bonafideID) return sendFailure(res, { error: 'Bonafide ID field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(bonafideID))
-		return sendFailure(res, { error: 'Bonafide ID must be valid' });
-
-	if (status !== 'approved' && status !== 'rejected')
-		return sendFailure(res, { error: 'Status must be valid' });
 
 	const certificate = await Certificate.findByIdAndUpdate(
 		bonafideID,

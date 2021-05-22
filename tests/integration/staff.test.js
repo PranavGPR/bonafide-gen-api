@@ -181,7 +181,7 @@ describe('/staff/', () => {
 			const res = await exec();
 
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('error', 'id must be valid');
+			expect(res.body).toHaveProperty('error', '"id" must be valid');
 		});
 
 		it('should return 404 if student not found', async () => {

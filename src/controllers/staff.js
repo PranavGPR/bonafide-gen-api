@@ -1,11 +1,11 @@
 import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
-import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import config from 'config';
 import bcrypt from 'bcrypt';
-import transporter from 'MailConnection';
 
+import transporter from 'MailConnection';
+import { sendSuccess, sendFailure, generateToken } from 'helpers';
 import logger from 'tools/logging';
 import { Student, Staff, Certificate } from 'models';
 
@@ -22,19 +22,18 @@ import { Student, Staff, Certificate } from 'models';
 export const getStudentById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!id) return sendFailure(res, { error: 'id field required' });
 
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
+	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'id must be valid' });
 
 	const student = await Student.findById(id, { createdAt: 0, updatedAt: 0 }).populate(
 		'section',
 		'name -_id'
 	);
 
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ data: student });
+	return sendSuccess(res, { data: student });
 };
 
 /**
@@ -55,9 +54,9 @@ export const getStaffProfile = async (req, res) => {
 		'name -_id'
 	);
 
-	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
+	if (!staff) return sendFailure(res, { error: 'Staff does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ data: staff });
+	return sendSuccess(res, { data: staff });
 };
 
 /**
@@ -75,15 +74,13 @@ export const getStudentsBySection = async (req, res) => {
 	const { id } = req.user;
 
 	const staff = await Staff.findById(id);
-	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
+	if (!staff) return sendFailure(res, { error: 'Staff does not exist' });
 
 	const students = await Student.find({ section: staff.section }, { createdAt: 0, updatedAt: 0 })
 		.populate('section', 'name -_id')
 		.sort('registerNumber');
 
-	if (!students) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
-
-	return res.status(StatusCodes.OK).json({ data: students });
+	return sendSuccess(res, { data: students });
 };
 
 /**
@@ -111,15 +108,15 @@ export const updateStaff = async (req, res) => {
 	fields = JSON.parse(JSON.stringify(fields, (k, v) => (v ? v : undefined)));
 	let len = Object.keys(fields).length;
 
-	if (len === 0) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'No fields specified' });
+	if (len === 0) return sendFailure(res, { error: 'No fields specified' });
 
 	const staff = await Staff.findByIdAndUpdate(id, { ...fields }, { new: true });
 
-	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
+	if (!staff) return sendFailure(res, { error: 'Staff does not exist' }, StatusCodes.NOT_FOUND);
 
 	logger.debug('Staff updated successfully');
 
-	return res.status(StatusCodes.OK).json({ message: 'Staff updated successfully', data: staff });
+	return sendSuccess(res, { message: 'Staff updated successfully', data: staff });
 };
 
 /**
@@ -138,26 +135,24 @@ export const staffLogin = async (req, res) => {
 		body: { email, password }
 	} = req;
 
-	if (!email) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email field required' });
-	if (!password)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'password field required' });
+	if (!email) return sendFailure(res, { error: 'email field required' });
+	if (!password) return sendFailure(res, { error: 'password field required' });
 
 	const staff = await Staff.findOne({ email }).select('name password');
 
-	if (!staff)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
+	if (!staff) return sendFailure(res, { error: 'email or password incorrect' });
 
 	const match = await bcrypt.compare(password, staff.password);
 
 	if (!match) {
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'email or password incorrect' });
+		return sendFailure(res, { error: 'email or password incorrect' });
 	}
 
 	const { _id: id, name } = staff;
 
-	const token = jwt.sign({ role: 'staff', id, name }, config.get('jwtPrivateKey'));
+	const token = generateToken({ role: 'staff', id, name });
 
-	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
+	return sendSuccess(res, { message: 'Logged in Successfully', token, name });
 };
 
 /**
@@ -180,7 +175,7 @@ export const getAppliedBonafide = async (req, res) => {
 		status: 'applied'
 	}).populate('studentID');
 
-	return res.status(StatusCodes.OK).json({ data: certificate });
+	return sendSuccess(res, { data: certificate });
 };
 
 /**
@@ -203,7 +198,7 @@ export const getBonafideHistory = async (req, res) => {
 		status: { $ne: 'applied' }
 	}).populate('studentID');
 
-	return res.status(StatusCodes.OK).json({ data: certificate });
+	return sendSuccess(res, { data: certificate });
 };
 
 /**
@@ -220,14 +215,13 @@ export const updateBonafideStatus = async (req, res) => {
 	const { id } = req.user;
 	const { bonafideID, status } = req.body;
 
-	if (!bonafideID)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Bonafide ID field required' });
+	if (!bonafideID) return sendFailure(res, { error: 'Bonafide ID field required' });
 
 	if (!Mongoose.Types.ObjectId.isValid(bonafideID))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Bonafide ID must be valid' });
+		return sendFailure(res, { error: 'Bonafide ID must be valid' });
 
 	if (status !== 'approved' && status !== 'rejected')
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Status must be valid' });
+		return sendFailure(res, { error: 'Status must be valid' });
 
 	const certificate = await Certificate.findByIdAndUpdate(
 		bonafideID,
@@ -238,11 +232,11 @@ export const updateBonafideStatus = async (req, res) => {
 		{ new: true }
 	);
 
-	const { email } = await Student.findById(certificate.studentID);
+	const student = await Student.findById(certificate.studentID);
 
 	let mailOptions = {
 		from: `"AUBIT" ${config.get('MAIL_USER_NAME')}`,
-		to: email,
+		to: student?.email,
 		subject: `Bonafide ${status === 'approved' ? 'Approved' : 'Rejected'}`,
 		html: `
 			<h3>Your bonafide application has been approved!</h3>
@@ -259,5 +253,5 @@ export const updateBonafideStatus = async (req, res) => {
 		logger.error(err);
 	}
 
-	return res.status(StatusCodes.OK).json({ data: certificate });
+	return sendSuccess(res, { data: certificate });
 };

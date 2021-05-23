@@ -1,11 +1,9 @@
 import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
-import jwt from 'jsonwebtoken';
-import 'dotenv/config';
-import config from 'config';
 import bcrypt from 'bcrypt';
 
 import { Section, Student, Staff, validateAdmin, Admin } from 'models';
+import { sendSuccess, sendFailure, generateToken } from 'helpers';
 
 /**
  *
@@ -22,14 +20,14 @@ export const newAdmin = async (req, res) => {
 	const { body } = req;
 
 	const { error } = validateAdmin(body);
-	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
+	if (error) return sendFailure(res, { error: error.details[0].message });
 
 	body.password = await bcrypt.hash(body.password, 10);
 
 	let admin = new Admin({ ...body });
 	admin = await admin.save();
 
-	return res.status(StatusCodes.OK).json({ message: 'Admin created successfully', data: admin });
+	return sendSuccess(res, { message: 'Admin created successfully', data: admin });
 };
 
 /**
@@ -45,7 +43,7 @@ export const newAdmin = async (req, res) => {
 
 export const getAdmins = async (req, res) => {
 	const admins = await Admin.find({}, { password: 0, createdAt: 0, updatedAt: 0 });
-	return res.status(StatusCodes.OK).json({ data: admins });
+	return sendSuccess(res, { data: admins });
 };
 
 /**
@@ -61,16 +59,15 @@ export const getAdmins = async (req, res) => {
 export const getAdminById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!id) return sendFailure(res, { error: 'id field required' });
 
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
+	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'id must be valid' });
 
 	const admin = await Admin.findById(id, { password: 0, createdAt: 0, updatedAt: 0 });
 
-	if (!admin) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Admin does not exist' });
+	if (!admin) return sendFailure(res, { error: 'Admin does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ data: admin });
+	return sendSuccess(res, { data: admin });
 };
 
 /**
@@ -88,16 +85,15 @@ export const deleteAdmin = async (req, res) => {
 		body: { id }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!id) return sendFailure(res, { error: 'id field required' });
 
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
+	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'Not a valid id' });
 
 	const admin = await Admin.findByIdAndDelete(id);
 
-	if (!admin) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Admin does not exist' });
+	if (!admin) return sendFailure(res, { error: 'Admin does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ message: 'Admin deleted successfully', data: admin });
+	return sendSuccess(res, { message: 'Admin deleted successfully', data: admin });
 };
 
 /**
@@ -117,7 +113,7 @@ export const countMembers = async (req, res) => {
 	const students = await Student.countDocuments({});
 	const sections = await Section.countDocuments({});
 
-	return res.status(StatusCodes.OK).json({
+	return sendSuccess(res, {
 		adminCount: admins,
 		staffCount: staffs,
 		studentCount: students,
@@ -141,25 +137,23 @@ export const adminLogin = async (req, res) => {
 		body: { email, password }
 	} = req;
 
-	if (!email) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email field required' });
+	if (!email) return sendFailure(res, { error: 'Email field required' });
 
-	if (!password)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Password field required' });
+	if (!password) return sendFailure(res, { error: 'Password field required' });
 
 	const admin = await Admin.findOne({ email }).select('name password');
 
-	if (!admin)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email or Password incorrect' });
+	if (!admin) return sendFailure(res, { error: 'Email or Password incorrect' });
 
 	const match = await bcrypt.compare(password, admin.password);
 
 	if (!match) {
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email or Password Incorrect' });
+		return sendFailure(res, { error: 'Email or Password Incorrect' });
 	}
 
 	const { name, _id: id } = admin;
 
-	const token = jwt.sign({ role: 'admin', id, name }, config.get('jwtPrivateKey'));
+	const token = generateToken({ role: 'admin', id, name });
 
-	return res.status(StatusCodes.OK).json({ message: 'Logged in Successfully', token, name });
+	return sendSuccess(res, { message: 'Logged in Successfully', token, name });
 };

@@ -1,8 +1,7 @@
-import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import bcrypt from 'bcrypt';
 
-import { Section, Student, Staff, validateAdmin, Admin } from 'models';
+import { Section, Student, Staff, Admin } from 'models';
 import { sendSuccess, sendFailure, generateToken } from 'helpers';
 
 /**
@@ -18,9 +17,6 @@ import { sendSuccess, sendFailure, generateToken } from 'helpers';
 
 export const newAdmin = async (req, res) => {
 	const { body } = req;
-
-	const { error } = validateAdmin(body);
-	if (error) return sendFailure(res, { error: error.details[0].message });
 
 	body.password = await bcrypt.hash(body.password, 10);
 
@@ -59,10 +55,6 @@ export const getAdmins = async (req, res) => {
 export const getAdminById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id) return sendFailure(res, { error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'id must be valid' });
-
 	const admin = await Admin.findById(id, { password: 0, createdAt: 0, updatedAt: 0 });
 
 	if (!admin) return sendFailure(res, { error: 'Admin does not exist' }, StatusCodes.NOT_FOUND);
@@ -84,10 +76,6 @@ export const deleteAdmin = async (req, res) => {
 	const {
 		body: { id }
 	} = req;
-
-	if (!id) return sendFailure(res, { error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'Not a valid id' });
 
 	const admin = await Admin.findByIdAndDelete(id);
 
@@ -136,10 +124,6 @@ export const adminLogin = async (req, res) => {
 	const {
 		body: { email, password }
 	} = req;
-
-	if (!email) return sendFailure(res, { error: 'Email field required' });
-
-	if (!password) return sendFailure(res, { error: 'Password field required' });
 
 	const admin = await Admin.findOne({ email }).select('name password');
 

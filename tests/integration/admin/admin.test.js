@@ -165,7 +165,7 @@ describe('/admin/', () => {
 			const res = await exec();
 
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('error', 'id must be valid');
+			expect(res.body).toHaveProperty('error', '"id" must be valid');
 		});
 
 		it('should return 404 if admin not found', async () => {
@@ -243,7 +243,7 @@ describe('/admin/', () => {
 			const res = await exec();
 
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('error', 'id field required');
+			expect(res.body).toHaveProperty('error', '"id" is required');
 		});
 
 		it('should return 400 if id is invalid', async () => {
@@ -251,7 +251,7 @@ describe('/admin/', () => {
 			const res = await exec();
 
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('error', 'Not a valid id');
+			expect(res.body).toHaveProperty('error', '"id" must be valid');
 		});
 
 		it('should return 404 if admin not found', async () => {

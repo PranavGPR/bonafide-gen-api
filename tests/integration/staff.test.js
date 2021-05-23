@@ -1,4 +1,5 @@
 import request from 'supertest';
+
 import { Staff, Student, Certificate, Section } from 'models';
 import { generateBearerToken } from './function';
 import staff from './constants/staff';

@@ -127,7 +127,8 @@ export const adminLogin = async (req, res) => {
 
 	const admin = await Admin.findOne({ email }).select('name password');
 
-	if (!admin) return sendFailure(res, { error: 'Email or Password incorrect' });
+	if (!admin)
+		return sendFailure(res, { error: 'Email or Password incorrect' }, StatusCodes.NOT_FOUND);
 
 	const match = await bcrypt.compare(password, admin.password);
 

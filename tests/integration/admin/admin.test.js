@@ -44,10 +44,10 @@ describe('/admin/', () => {
 			expect(res.body).toHaveProperty('error');
 		});
 
-		it('should return 400 if admin not found', async () => {
+		it('should return 404 if admin not found', async () => {
 			const res = await exec();
 
-			expect(res.status).toBe(400);
+			expect(res.status).toBe(404);
 			expect(res.body).toHaveProperty('error', 'Email or Password incorrect');
 		});
 
@@ -206,7 +206,7 @@ describe('/admin/', () => {
 			expect(res.status).toBe(401);
 		});
 
-		it('should return 200 with all count', async () => {
+		it('should return 200 with all count data', async () => {
 			const newAdmin = new Admin(adminData);
 			await newAdmin.save();
 

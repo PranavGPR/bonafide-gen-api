@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { validateAdmin } from 'models';
+import { validateAdmin, validateStudent } from 'models';
 import {
 	deleteStaff,
 	deleteStudent,
@@ -29,7 +29,15 @@ import {
 	removeSectionStudent,
 	adminLogin
 } from 'controllers/admin';
-import { adminLoginValidator, getAdminByIdValidator, deleteAdminValidator } from 'validators/admin';
+import {
+	adminLoginValidator,
+	getAdminByIdValidator,
+	deleteAdminValidator,
+	getStudentByIdValidator,
+	getStudentByRegisterNoValidator,
+	updateStudentValidator,
+	deleteStudentValidator
+} from 'validators/admin';
 import { auth, isAdmin } from 'middlewares';
 import { validateBody } from 'helpers';
 
@@ -42,12 +50,30 @@ router.get('/all', auth, isAdmin, getAdmins);
 router.get('/count', auth, isAdmin, countMembers);
 router.get('/:id', auth, isAdmin, validateBody(getAdminByIdValidator, true), getAdminById);
 
-router.post('/student/new', auth, isAdmin, newStudent);
+router.post('/student/new', auth, isAdmin, validateBody(validateStudent), newStudent);
 router.get('/student/all', auth, isAdmin, getStudents);
-router.put('/student/update', auth, isAdmin, updateStudent);
-router.delete('/student/delete', auth, isAdmin, deleteStudent);
-router.get('/student/:id', auth, isAdmin, getStudentById);
-router.get('/student/registerNumber/:registerNumber', auth, isAdmin, getStudentByRegisterNumber);
+router.put('/student/update', auth, isAdmin, validateBody(updateStudentValidator), updateStudent);
+router.delete(
+	'/student/delete',
+	auth,
+	isAdmin,
+	validateBody(deleteStudentValidator),
+	deleteStudent
+);
+router.get(
+	'/student/:id',
+	auth,
+	isAdmin,
+	validateBody(getStudentByIdValidator, true),
+	getStudentById
+);
+router.get(
+	'/student/registerNumber/:registerNumber',
+	auth,
+	isAdmin,
+	validateBody(getStudentByRegisterNoValidator, true),
+	getStudentByRegisterNumber
+);
 
 router.post('/staff/new', auth, isAdmin, newStaff);
 router.get('/staff/all', auth, isAdmin, getStaffs);

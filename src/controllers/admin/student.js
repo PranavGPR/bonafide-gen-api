@@ -2,6 +2,7 @@ import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 
 import { Student, validateStudent, Section } from 'models';
+import { sendSuccess, sendFailure } from 'helpers';
 import logger from 'tools/logging';
 
 /**
@@ -19,7 +20,7 @@ export const newStudent = async (req, res) => {
 	const { body } = req;
 
 	const { error } = validateStudent(body);
-	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
+	if (error) return sendFailure(res, { error: error.details[0].message });
 
 	let student = new Student({ ...body });
 
@@ -28,12 +29,11 @@ export const newStudent = async (req, res) => {
 		{ $push: { students: student.id } },
 		{ new: true }
 	);
-	if (body.section && !section)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
+	if (body.section && !section) return sendFailure(res, { error: 'Section does not exist' });
 
 	student = await student.save();
 
-	return res.status(StatusCodes.OK).json({ message: 'Successfully Created!', data: student });
+	return sendSuccess(res, { message: 'Successfully Created!', data: student });
 };
 
 /**
@@ -51,7 +51,7 @@ export const getStudents = async (req, res) => {
 	const students = await Student.find({}, { createdAt: 0, updatedAt: 0 })
 		.populate('section', 'name')
 		.sort('registerNumber');
-	return res.status(StatusCodes.OK).json({ data: students });
+	return sendSuccess(res, { data: students });
 };
 
 /**
@@ -67,19 +67,18 @@ export const getStudents = async (req, res) => {
 export const getStudentById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!id) return sendFailure(res, { error: 'id field required' });
 
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id must be valid' });
+	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'id must be valid' });
 
 	const student = await Student.findById(id, { createdAt: 0, updatedAt: 0 }).populate(
 		'section',
 		'name'
 	);
 
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ data: student });
+	return sendSuccess(res, { data: student });
 };
 
 /**
@@ -95,20 +94,18 @@ export const getStudentById = async (req, res) => {
 export const getStudentByRegisterNumber = async (req, res) => {
 	const { registerNumber } = req.params;
 
-	if (!registerNumber)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'registerNumber field required' });
+	if (!registerNumber) return sendFailure(res, { error: 'registerNumber field required' });
 
-	if (!Number(registerNumber))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'registerNumber must be valid' });
+	if (!Number(registerNumber)) return sendFailure(res, { error: 'registerNumber must be valid' });
 
 	const student = await Student.findOne(
 		{ registerNumber },
 		{ createdAt: 0, updatedAt: 0 }
 	).populate('section', 'name');
 
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ data: student });
+	return sendSuccess(res, { data: student });
 };
 
 /**
@@ -125,24 +122,21 @@ export const getStudentByRegisterNumber = async (req, res) => {
 export const updateStudent = async (req, res) => {
 	const { body } = req;
 
-	if (!body.id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!body.id) return sendFailure(res, { error: 'id field required' });
 
 	if (!Mongoose.Types.ObjectId.isValid(body.id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
+		return sendFailure(res, { error: 'Not a valid id' });
 
 	delete body.section;
 
-	if (Object.keys(body).length === 1)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'No fields specified' });
+	if (Object.keys(body).length === 1) return sendFailure(res, { error: 'No fields specified' });
 
 	const student = await Student.findByIdAndUpdate(body.id, { ...body }, { new: true });
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
 	logger.debug('Student updated successfully');
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Student updated successfully', data: student });
+	return sendSuccess(res, { message: 'Student updated successfully', data: student });
 };
 
 /**
@@ -161,20 +155,17 @@ export const deleteStudent = async (req, res) => {
 		body: { id }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'id field required' });
+	if (!id) return sendFailure(res, { error: 'id field required' });
 
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Not a valid id' });
+	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'Not a valid id' });
 
 	const student = await Student.findByIdAndDelete(id);
 
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
 	logger.debug('Student deleted successfully');
 
 	await Section.findByIdAndUpdate(student.section, { $pull: { students: id } }, { new: true });
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Student deleted successfully', data: student });
+	return sendSuccess(res, { message: 'Student deleted successfully', data: student });
 };

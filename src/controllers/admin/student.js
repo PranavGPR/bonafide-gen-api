@@ -28,7 +28,7 @@ export const newStudent = async (req, res) => {
 		{ $push: { students: student.id } },
 		{ new: true }
 	);
-	if (!section)
+	if (body.section && !section)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
 
 	student = await student.save();
@@ -101,10 +101,10 @@ export const getStudentByRegisterNumber = async (req, res) => {
 	if (!Number(registerNumber))
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'registerNumber must be valid' });
 
-	const student = await Student.find({ registerNumber }, { createdAt: 0, updatedAt: 0 }).populate(
-		'section',
-		'name'
-	);
+	const student = await Student.findOne(
+		{ registerNumber },
+		{ createdAt: 0, updatedAt: 0 }
+	).populate('section', 'name');
 
 	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
 
@@ -132,8 +132,10 @@ export const updateStudent = async (req, res) => {
 
 	delete body.section;
 
-	const student = await Student.findByIdAndUpdate(body.id, { ...body }, { new: true });
+	if (Object.keys(body).length === 1)
+		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'No fields specified' });
 
+	const student = await Student.findByIdAndUpdate(body.id, { ...body }, { new: true });
 	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
 
 	logger.debug('Student updated successfully');

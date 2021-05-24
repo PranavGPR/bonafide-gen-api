@@ -47,7 +47,7 @@ router.get('/student/all', auth, isAdmin, getStudents);
 router.put('/student/update', auth, isAdmin, updateStudent);
 router.delete('/student/delete', auth, isAdmin, deleteStudent);
 router.get('/student/:id', auth, isAdmin, getStudentById);
-router.get('/student/:registerNumber', auth, isAdmin, getStudentByRegisterNumber);
+router.get('/student/registerNumber/:registerNumber', auth, isAdmin, getStudentByRegisterNumber);
 
 router.post('/staff/new', auth, isAdmin, newStaff);
 router.get('/staff/all', auth, isAdmin, getStaffs);

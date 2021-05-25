@@ -31,10 +31,10 @@ export const newStaff = async (req, res) => {
 		{ $push: { staffs: staff.id } },
 		{ new: true }
 	);
-	if (!section)
+	if (body.section && !section)
 		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Section does not exist' });
 
-	staff = await staff.save();
+	await staff.save();
 
 	return res.status(StatusCodes.OK).json({ message: 'Staff created successfully', data: staff });
 };
@@ -108,6 +108,11 @@ export const updateStaff = async (req, res) => {
 	delete body.password;
 	delete body.section;
 
+	if (Object.keys(body).length === 1)
+		return res.status(StatusCodes.BAD_REQUEST).json({
+			error: 'No fields specified'
+		});
+
 	const staff = await Staff.findByIdAndUpdate(body.id, { ...body }, { new: true });
 
 	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
@@ -150,7 +155,7 @@ export const deleteStaff = async (req, res) => {
 
 	const staff = await Staff.findByIdAndDelete(id);
 
-	if (!staff) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff does not exist' });
+	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
 
 	await Section.findByIdAndUpdate(staff.section, { $pull: { staffs: id } }, { new: true });
 

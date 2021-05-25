@@ -1,8 +1,7 @@
-import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import bcrypt from 'bcrypt';
 
-import { Staff, validateStaff, Section } from 'models';
+import { Staff, Section } from 'models';
 import logger from 'tools/logging';
 import { sendSuccess, sendFailure } from 'helpers';
 
@@ -20,12 +19,9 @@ import { sendSuccess, sendFailure } from 'helpers';
 export const newStaff = async (req, res) => {
 	const { body } = req;
 
-	const { error } = validateStaff(body);
-	if (error) return sendFailure(res, { error: error.details[0].message });
-
 	body.password = await bcrypt.hash(body.password, 10);
 
-	let staff = new Staff({ ...body });
+	const staff = new Staff({ ...body });
 
 	const section = await Section.findByIdAndUpdate(
 		body.section,
@@ -71,10 +67,6 @@ export const getStaffs = async (req, res) => {
 export const getStaffById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id) return sendFailure(res, { error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'id must be valid' });
-
 	const staff = await Staff.findById(id, { password: 0, createdAt: 0, updatedAt: 0 }).populate(
 		'section',
 		'name'
@@ -98,20 +90,6 @@ export const getStaffById = async (req, res) => {
 
 export const updateStaff = async (req, res) => {
 	const { body } = req;
-
-	if (!body.id) return sendFailure(res, { error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(body.id))
-		return sendFailure(res, { error: 'Not a valid id' });
-
-	delete body.password;
-	delete body.section;
-
-	if (Object.keys(body).length === 1)
-		return sendFailure(res, {
-			error: 'No fields specified'
-		});
-
 	const staff = await Staff.findByIdAndUpdate(body.id, { ...body }, { new: true });
 
 	if (!staff) return sendFailure(res, { error: 'Staff does not exist' }, StatusCodes.NOT_FOUND);
@@ -127,7 +105,7 @@ export const updateStaff = async (req, res) => {
  *
  * @route: /staff/delete
  * @method: DELETE
- * @requires: body{ id}
+ * @requires: body{id}
  * @returns: 'Successfully deleted' | 'Could not delete the staff'
  *
  */
@@ -136,10 +114,6 @@ export const deleteStaff = async (req, res) => {
 	const {
 		body: { id }
 	} = req;
-
-	if (!id) return sendFailure(res, { error: 'id field required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id)) return sendFailure(res, { error: 'Not a valid id' });
 
 	const staffWithSection = await Staff.findById(id).populate('section');
 

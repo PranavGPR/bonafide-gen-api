@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { validateAdmin, validateStudent } from 'models';
+import { validateAdmin, validateStaff, validateStudent } from 'models';
 import {
 	deleteStaff,
 	deleteStudent,
@@ -36,7 +36,10 @@ import {
 	getStudentByIdValidator,
 	getStudentByRegisterNoValidator,
 	updateStudentValidator,
-	deleteStudentValidator
+	deleteStudentValidator,
+	getStaffByIdValidator,
+	updateStaffValidator,
+	deleteStaffValidator
 } from 'validators/admin';
 import { auth, isAdmin } from 'middlewares';
 import { validateBody } from 'helpers';
@@ -75,11 +78,11 @@ router.get(
 	getStudentByRegisterNumber
 );
 
-router.post('/staff/new', auth, isAdmin, newStaff);
+router.post('/staff/new', auth, isAdmin, validateBody(validateStaff), newStaff);
 router.get('/staff/all', auth, isAdmin, getStaffs);
-router.put('/staff/update', auth, isAdmin, updateStaff);
-router.delete('/staff/delete', auth, isAdmin, deleteStaff);
-router.get('/staff/:id', auth, isAdmin, getStaffById);
+router.put('/staff/update', auth, isAdmin, validateBody(updateStaffValidator), updateStaff);
+router.delete('/staff/delete', auth, isAdmin, validateBody(deleteStaffValidator), deleteStaff);
+router.get('/staff/:id', auth, isAdmin, validateBody(getStaffByIdValidator, true), getStaffById);
 
 router.post('/section/new', auth, isAdmin, newSection);
 router.get('/section/all', auth, isAdmin, getSections);

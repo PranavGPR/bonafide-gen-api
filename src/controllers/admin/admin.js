@@ -21,7 +21,7 @@ export const newAdmin = async (req, res) => {
 	body.password = await bcrypt.hash(body.password, 10);
 
 	let admin = new Admin({ ...body });
-	admin = await admin.save();
+	await admin.save();
 
 	return sendSuccess(res, { message: 'Admin created successfully', data: admin });
 };

@@ -1,7 +1,6 @@
-import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 
-import { validateSection, Section, Staff, Student } from 'models';
+import { Section, Staff, Student } from 'models';
 import { sendSuccess, sendFailure } from 'helpers';
 import logger from 'tools/logging';
 
@@ -17,12 +16,11 @@ import logger from 'tools/logging';
  */
 
 export const newSection = async (req, res) => {
-	const { body } = req;
+	const {
+		body: { name }
+	} = req;
 
-	const { error } = validateSection(body);
-	if (error) return sendFailure(res, { error: error.details[0].message });
-
-	let section = new Section({ name: body.name });
+	const section = new Section({ name });
 	await section.save();
 
 	return sendSuccess(res, { message: 'Section created successfully', data: section });
@@ -57,11 +55,6 @@ export const getSections = async (req, res) => {
 export const getSectionById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id) return sendFailure(res, { error: '"id" must be valid' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return sendFailure(res, { error: '"id" must be valid' });
-
 	const section = await Section.findById(id)
 		.populate('staffs', 'name designation department campus email')
 		.populate('students', 'name degree department campus registerNumber ', null, {
@@ -89,13 +82,6 @@ export const updateSectionName = async (req, res) => {
 		body: { id, name }
 	} = req;
 
-	if (!id) return sendFailure(res, { error: '"id" is required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return sendFailure(res, { error: '"id" must be valid' });
-
-	if (!name) return sendFailure(res, { error: '"name" is required' });
-
 	const section = await Section.findByIdAndUpdate(id, { name }, { new: true });
 
 	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
@@ -120,14 +106,6 @@ export const updateSectionStaff = async (req, res) => {
 	const {
 		body: { id, staffId }
 	} = req;
-
-	if (!id) return sendFailure(res, { error: '"id" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return sendFailure(res, { error: '"id" must be valid' });
-
-	if (!staffId) return sendFailure(res, { error: '"staffId" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(staffId))
-		return sendFailure(res, { error: '"staffId" must be valid' });
 
 	const section = await Section.findById(id);
 	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
@@ -167,14 +145,6 @@ export const updateSectionStudent = async (req, res) => {
 	const {
 		body: { id, studentId }
 	} = req;
-
-	if (!id) return sendFailure(res, { error: '"id" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return sendFailure(res, { error: '"id" must be valid' });
-
-	if (!studentId) return sendFailure(res, { error: '"studentId" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(studentId))
-		return sendFailure(res, { error: '"studentId" must be valid' });
 
 	const section = await Section.findById(id);
 	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
@@ -218,14 +188,6 @@ export const removeSectionStaff = async (req, res) => {
 		body: { id, staffId }
 	} = req;
 
-	if (!id) return sendFailure(res, { error: '"id" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return sendFailure(res, { error: '"id" must be valid' });
-
-	if (!staffId) return sendFailure(res, { error: '"staffId" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(staffId))
-		return sendFailure(res, { error: '"staffId" must be valid' });
-
 	const section = await Section.findById(id);
 	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
@@ -264,14 +226,6 @@ export const removeSectionStudent = async (req, res) => {
 		body: { id, studentId }
 	} = req;
 
-	if (!id) return sendFailure(res, { error: '"id" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return sendFailure(res, { error: '"id" must be valid' });
-
-	if (!studentId) return sendFailure(res, { error: '"studentId" is required' });
-	if (!Mongoose.Types.ObjectId.isValid(studentId))
-		return sendFailure(res, { error: '"studentId" must be valid' });
-
 	const section = await Section.findById(id);
 	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
@@ -305,11 +259,6 @@ export const deleteSection = async (req, res) => {
 	const {
 		body: { id }
 	} = req;
-
-	if (!id) return sendFailure(res, { error: '"id" is required' });
-
-	if (!Mongoose.Types.ObjectId.isValid(id))
-		return sendFailure(res, { error: '"id" must be valid' });
 
 	const section = await Section.findByIdAndDelete(id);
 

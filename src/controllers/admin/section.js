@@ -2,6 +2,7 @@ import Mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 
 import { validateSection, Section, Staff, Student } from 'models';
+import { sendSuccess, sendFailure } from 'helpers';
 import logger from 'tools/logging';
 
 /**
@@ -19,14 +20,12 @@ export const newSection = async (req, res) => {
 	const { body } = req;
 
 	const { error } = validateSection(body);
-	if (error) return res.status(StatusCodes.BAD_REQUEST).json({ error: error.details[0].message });
+	if (error) return sendFailure(res, { error: error.details[0].message });
 
 	let section = new Section({ name: body.name });
 	await section.save();
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Section created successfully', data: section });
+	return sendSuccess(res, { message: 'Section created successfully', data: section });
 };
 
 /**
@@ -42,7 +41,7 @@ export const newSection = async (req, res) => {
 
 export const getSections = async (req, res) => {
 	const sections = await Section.find();
-	return res.status(StatusCodes.OK).json({ data: sections });
+	return sendSuccess(res, { data: sections });
 };
 
 /**
@@ -58,10 +57,10 @@ export const getSections = async (req, res) => {
 export const getSectionById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+	if (!id) return sendFailure(res, { error: '"id" must be valid' });
 
 	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+		return sendFailure(res, { error: '"id" must be valid' });
 
 	const section = await Section.findById(id)
 		.populate('staffs', 'name designation department campus email')
@@ -69,9 +68,9 @@ export const getSectionById = async (req, res) => {
 			sort: { registerNumber: 1 }
 		});
 
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res.status(StatusCodes.OK).json({ data: section });
+	return sendSuccess(res, { data: section });
 };
 
 /**
@@ -90,22 +89,20 @@ export const updateSectionName = async (req, res) => {
 		body: { id, name }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" is required' });
+	if (!id) return sendFailure(res, { error: '"id" is required' });
 
 	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+		return sendFailure(res, { error: '"id" must be valid' });
 
-	if (!name) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"name" is required' });
+	if (!name) return sendFailure(res, { error: '"name" is required' });
 
 	const section = await Section.findByIdAndUpdate(id, { name }, { new: true });
 
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
 	logger.debug('Section updated successfully');
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Section updated successfully', data: section });
+	return sendSuccess(res, { message: 'Section updated successfully', data: section });
 };
 
 /**
@@ -124,22 +121,21 @@ export const updateSectionStaff = async (req, res) => {
 		body: { id, staffId }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" is required' });
+	if (!id) return sendFailure(res, { error: '"id" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+		return sendFailure(res, { error: '"id" must be valid' });
 
-	if (!staffId) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"staffId" is required' });
+	if (!staffId) return sendFailure(res, { error: '"staffId" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(staffId))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"staffId" must be valid' });
+		return sendFailure(res, { error: '"staffId" must be valid' });
 
 	const section = await Section.findById(id);
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
 	const staff = await Staff.findById(staffId);
-	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
+	if (!staff) return sendFailure(res, { error: 'Staff does not exist' }, StatusCodes.NOT_FOUND);
 
-	if (staff.section)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Staff is not available' });
+	if (staff.section) return sendFailure(res, { error: 'Staff is not available' });
 
 	staff.section = id;
 
@@ -153,9 +149,7 @@ export const updateSectionStaff = async (req, res) => {
 
 	logger.debug('Section updated successfully');
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Section updated successfully', data: sectionUpdated });
+	return sendSuccess(res, { message: 'Section updated successfully', data: sectionUpdated });
 };
 
 /**
@@ -174,30 +168,24 @@ export const updateSectionStudent = async (req, res) => {
 		body: { id, studentId }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" is required' });
+	if (!id) return sendFailure(res, { error: '"id" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+		return sendFailure(res, { error: '"id" must be valid' });
 
-	if (!studentId)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"studentId" is required' });
+	if (!studentId) return sendFailure(res, { error: '"studentId" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(studentId))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"studentId" must be valid' });
+		return sendFailure(res, { error: '"studentId" must be valid' });
 
 	const section = await Section.findById(id);
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
 	if (section.staffs.length === 0)
-		return res
-			.status(StatusCodes.BAD_REQUEST)
-			.json({ error: 'Section should contains atLeast one staff' });
+		return sendFailure(res, { error: 'Section should contains atLeast one staff' });
 
 	const student = await Student.findById(studentId);
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
-	if (student.section)
-		return res
-			.status(StatusCodes.BAD_REQUEST)
-			.json({ error: 'Student is already in another section' });
+	if (student.section) return sendFailure(res, { error: 'Student is already in another section' });
 
 	student.section = id;
 
@@ -211,9 +199,7 @@ export const updateSectionStudent = async (req, res) => {
 
 	logger.debug('Section updated successfully');
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Section updated successfully', data: sectionUpdated });
+	return sendSuccess(res, { message: 'Section updated successfully', data: sectionUpdated });
 };
 
 /**
@@ -232,26 +218,24 @@ export const removeSectionStaff = async (req, res) => {
 		body: { id, staffId }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" is required' });
+	if (!id) return sendFailure(res, { error: '"id" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+		return sendFailure(res, { error: '"id" must be valid' });
 
-	if (!staffId) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"staffId" is required' });
+	if (!staffId) return sendFailure(res, { error: '"staffId" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(staffId))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"staffId" must be valid' });
+		return sendFailure(res, { error: '"staffId" must be valid' });
 
 	const section = await Section.findById(id);
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
 	if (section.staffs.length <= 1 && section.students.length > 0)
-		return res
-			.status(StatusCodes.BAD_REQUEST)
-			.json({ error: 'Section should contains atLeast one staff' });
+		return sendFailure(res, { error: 'Section should contains atLeast one staff' });
 
 	const staff = await Staff.findByIdAndUpdate(staffId, {
 		section: null
 	});
-	if (!staff) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Staff does not exist' });
+	if (!staff) return sendFailure(res, { error: 'Staff does not exist' }, StatusCodes.NOT_FOUND);
 
 	const sectionUpdated = await Section.findByIdAndUpdate(
 		id,
@@ -261,9 +245,7 @@ export const removeSectionStaff = async (req, res) => {
 
 	logger.debug('Section updated successfully');
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Section updated successfully', data: sectionUpdated });
+	return sendSuccess(res, { message: 'Section updated successfully', data: sectionUpdated });
 };
 
 /**
@@ -282,22 +264,21 @@ export const removeSectionStudent = async (req, res) => {
 		body: { id, studentId }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" is required' });
+	if (!id) return sendFailure(res, { error: '"id" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+		return sendFailure(res, { error: '"id" must be valid' });
 
-	if (!studentId)
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"studentId" is required' });
+	if (!studentId) return sendFailure(res, { error: '"studentId" is required' });
 	if (!Mongoose.Types.ObjectId.isValid(studentId))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"studentId" must be valid' });
+		return sendFailure(res, { error: '"studentId" must be valid' });
 
 	const section = await Section.findById(id);
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
 	const student = await Student.findByIdAndUpdate(studentId, {
 		section: null
 	});
-	if (!student) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Student does not exist' });
+	if (!student) return sendFailure(res, { error: 'Student does not exist' }, StatusCodes.NOT_FOUND);
 
 	const sectionUpdated = await Section.findByIdAndUpdate(
 		id,
@@ -307,9 +288,7 @@ export const removeSectionStudent = async (req, res) => {
 
 	logger.debug('Section updated successfully');
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Section updated successfully', data: sectionUpdated });
+	return sendSuccess(res, { message: 'Section updated successfully', data: sectionUpdated });
 };
 
 /**
@@ -327,16 +306,14 @@ export const deleteSection = async (req, res) => {
 		body: { id }
 	} = req;
 
-	if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" is required' });
+	if (!id) return sendFailure(res, { error: '"id" is required' });
 
 	if (!Mongoose.Types.ObjectId.isValid(id))
-		return res.status(StatusCodes.BAD_REQUEST).json({ error: '"id" must be valid' });
+		return sendFailure(res, { error: '"id" must be valid' });
 
 	const section = await Section.findByIdAndDelete(id);
 
-	if (!section) return res.status(StatusCodes.NOT_FOUND).json({ error: 'Section does not exist' });
+	if (!section) return sendFailure(res, { error: 'Section does not exist' }, StatusCodes.NOT_FOUND);
 
-	return res
-		.status(StatusCodes.OK)
-		.json({ message: 'Section deleted successfully', data: section });
+	return sendSuccess(res, { message: 'Section deleted successfully', data: section });
 };

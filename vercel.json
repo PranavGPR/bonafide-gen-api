@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "bonafide-generator",
+  "builds": [
+    { "src": "server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/src/(.*)", "dest": "/server.js" }
+  ]
+}

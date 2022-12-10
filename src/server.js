@@ -18,13 +18,13 @@ app.use(express.json());
 registerLogging(app);
 registerPreprocessor(app);
 registerRouters(app);
+dbConnection();
 
 const server = app.listen(PORT);
 
 server.once('listening', async () => {
 	const { port } = server.address();
 	logger.info(`Server started at port ${chalk.magenta(port)}`);
-	await dbConnection();
 });
 
 module.exports = server;

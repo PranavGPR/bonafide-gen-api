@@ -20,6 +20,12 @@
 	"dependencies": {
 		"@babel/runtime": "^7.13.10",
 		"@hapi/joi": "^17.1.1",
+		"@babel/cli": "^7.13.10",
+		"@babel/core": "^7.13.10",
+		"@babel/node": "^7.13.12",
+		"@babel/plugin-proposal-throw-expressions": "^7.12.13",
+		"@babel/plugin-transform-runtime": "^7.13.10",
+		"@babel/preset-env": "^7.13.12",
 		"babel-plugin-module-resolver": "^4.1.0",
 		"bcrypt": "^5.0.1",
 		"chalk": "^4.1.0",
@@ -39,12 +45,6 @@
 		"winston": "^3.3.3"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.13.10",
-		"@babel/core": "^7.13.10",
-		"@babel/node": "^7.13.12",
-		"@babel/plugin-proposal-throw-expressions": "^7.12.13",
-		"@babel/plugin-transform-runtime": "^7.13.10",
-		"@babel/preset-env": "^7.13.12",
 		"@types/jest": "^26.0.22",
 		"eslint": "^7.22.0",
 		"eslint-plugin-jest": "^24.3.5",

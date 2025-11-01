@@ -7,7 +7,6 @@
 			{
 				"root": ["src"]
 			}
-		],
-		["@babel/plugin-syntax-throw-expressions"]
+		]
 	]
 }
